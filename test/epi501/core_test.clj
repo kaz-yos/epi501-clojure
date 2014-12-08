@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [epi501.core :refer :all]))
 
+;;; 
 ;;; Data representation and definition
 ;; A node is a map with an id and a neighbors vector
 (def node1 {:id 1, :neighbors [2 3], :state :I,  :time 2})
@@ -13,6 +14,16 @@
 (def pop1 [node1 node2 node3 node4 node5])
 
 
+;;; 
+;;; Data creation
+(deftest graph-test
+  (testing "graph creation"
+    (is (= (graph [1 2 3]) [{:id 1, :neighbors [], :state :S, :time 1}
+                            {:id 2, :neighbors [], :state :S, :time 1}
+                            {:id 3, :neighbors [], :state :S, :time 1}]))))
+
+
+;;; 
 ;;; Node-level information extraction 
 (deftest id-test
   (testing "id extration"

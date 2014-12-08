@@ -6,6 +6,13 @@
 ;;; Data representation
 ;; See the test file
 
+;;;
+;;; Data creation functions
+(defn graph [node-ids]
+  (map (fn [id]
+         {:id id, :neighbors [], :state :S, :time 1}) node-ids))
+
+
 ;;; 
 ;;; Query functions
 ;; Function to obtain edges from a node
