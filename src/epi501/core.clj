@@ -8,9 +8,26 @@
 
 ;;;
 ;;; Data creation functions
+
+;; Function to return a new node with initial status
+(defn new-node [node-id]
+  {:id node-id, :neighbors [], :state :S, :time 1})
+
+;; Function to create a population (graph) with specified ids
 (defn graph [node-ids]
-  (map (fn [id]
-         {:id id, :neighbors [], :state :S, :time 1}) node-ids))
+  (map new-node node-ids))
+
+;; Add new nodes
+(defn add-nodes [pop ]
+  :edges)
+
+;; Add new edges
+(defn add-edges []
+  :edges)
+
+;; Set state
+(defn set-state [pop node-ids states]
+  :new-pop)
 
 
 ;;; 

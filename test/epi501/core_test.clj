@@ -20,7 +20,9 @@
   (testing "graph creation"
     (is (= (graph [1 2 3]) [{:id 1, :neighbors [], :state :S, :time 1}
                             {:id 2, :neighbors [], :state :S, :time 1}
-                            {:id 3, :neighbors [], :state :S, :time 1}]))))
+                            {:id 3, :neighbors [], :state :S, :time 1}]))
+    (is (= (map :neighbors (graph [1 2 3])) [[] [] []]))
+    (is (= (map :state (graph [1 2 3])) [:S :S :S]))))
 
 
 ;;; 
