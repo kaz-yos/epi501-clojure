@@ -18,6 +18,7 @@
 ;;; Data creation
 (deftest graph-test
   (testing "graph creation"
+    (is (= (graph []) []))
     (is (= (graph [1 2 3]) [{:id 1, :neighbors [], :state :S, :time 1}
                             {:id 2, :neighbors [], :state :S, :time 1}
                             {:id 3, :neighbors [], :state :S, :time 1}]))

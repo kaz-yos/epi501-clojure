@@ -56,6 +56,7 @@
 (defn unique-directed-edge-set [pop]
   (->> (map edges pop)
        (reduce concat)
+       ;; No need for sorting
        (set)))
 
 ;;; 
