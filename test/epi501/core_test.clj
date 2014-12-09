@@ -55,6 +55,20 @@
                   {:id 2, :neighbors [1], :state :S, :time 1}
                   {:id 1, :neighbors [], :state :S, :time 1}))))))
 
+(deftest add-neighbors-test
+  (testing "Add new neighbors to an existing node"
+    (is (= (add-neighbors (new-graph [1 2 3]) 3 [1 2])
+           (seq '({:id 3, :neighbors [1 2], :state :S, :time 1}
+                  {:id 1, :neighbors [], :state :S, :time 1}
+                  {:id 2, :neighbors [], :state :S, :time 1}))))))
+
+(deftest add-neighborss-test
+  (testing "Add new neighbors to multiple existing nodes"
+    (is (= (add-neighborss (new-graph [1 2 3]) [1 2 3] [[2 3] [1] [1]])
+           (seq '({:id 3, :neighbors [1], :state :S, :time 1}
+                  {:id 2, :neighbors [1], :state :S, :time 1}
+                  {:id 1, :neighbors [2 3], :state :S, :time 1}))))))
+
 ;;; 
 ;;; Node-level information extraction 
 (deftest id-test

@@ -58,13 +58,32 @@
    (into graph (new-graph node-ids neighborss states times))))
 
 
-;; Add new edges
-(defn add-edges []
-  :edges)
+;; Add new neighbors to one node
+(defn add-neighbors [graph node-id neighbors]
+  (let [graph-rest (filter #(not (= (:id %) node-id)) graph)
+        ;; Use destructuring to get a node out of a seq
+        [node-of-interest] (filter #(= (:id %) node-id) graph)]
+    (conj graph-rest
+          (update-in node-of-interest [:neighbors] #(into % neighbors)))))
+
+;; Add new neighbors to multiple nodes
+(defn add-neighborss [graph node-ids neighborss]
+  (loop [node-ids-curr   node-ids
+         neighborss-curr neighborss
+         acc             graph]
+    (cond
+     (empty? node-ids-curr) acc
+     :else (recur (rest node-ids-curr) (rest neighborss-curr)
+                  (add-neighbors acc (first node-ids-curr) (first neighborss-curr))))))
+
 
 ;; Set state
-(defn set-state [graph node-ids states]
-  :new-pop)
+(defn set-state [graph node-id state]
+  :new-graph)
+
+;; Set time
+(defn set-time [graph node-ids times]
+  :new-graph)
 
 
 ;;; 
