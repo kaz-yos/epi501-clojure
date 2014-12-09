@@ -123,30 +123,47 @@
          (map rep-id, )
          (flatten, ))))
 
+;; Function to pick one (wrapped for future improvement)
 (defn random-choice
-  "Randomly choose one element in a collection
-
-  Uses bigmlcom/sampling
-  https://github.com/bigmlcom/sampling"
+  "Randomly choose one element in a collection"
   [coll]
-  )
+  (rand-nth coll))
 
-;; Function to create a 
+;; Function to randomly pick n unique elements
+(defn random-n-unique-elements
+  "Function to randomly pick n unique elements
+
+  Continue picking until a set has the desired length."
+  [coll n]
+  ;; First check if there are enough unique elements to pick n unique element
+  (if (< (count (set coll)) n)
+    ;; invalid
+    ;; http://stackoverflow.com/questions/5459865/how-can-i-throw-an-exception-in-clojure
+    (throw (Throwable. "Not enough unique elements in the collection"))
+    ;; valid
+    (loop [acc #{}]
+      (cond
+       (= (count acc) n) acc
+       :else (recur (conj acc (random-choice coll)))))))
+
+;; Function to create a Brabasi-Albert network
 (defn barabasi-albert-graph
   "Function to construct a random graph using Barabási-Albert preferential attachment model
-  
+
+  n nodes will be added with m edges at a time.
   http://networkx.lanl.gov/reference/generated/networkx.generators.random_graphs.barabasi_albert_graph.html
   The algorithm follows the Wikipedia explanation.
   http://en.wikipedia.org/wiki/Barabási–Albert_model#Algorithm"
   ;;
   ([n m]
    (let [init-graph (seed-graph-for-ba m)]
+     ;;
      (loop [acc init-graph]
        (cond
         true acc
         :else (recur acc)))))
   ;;
-  ;; Given a random number seed
+  ;; Given a random number seed (not implemented yet)
   ([n m seed]
    :ba-w-seed))
 

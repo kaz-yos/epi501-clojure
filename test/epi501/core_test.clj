@@ -91,6 +91,16 @@
     (is (= (weighted-id-seq (seed-graph-for-ba 3)) '(0 0 1 1 2 2)))
     (is (= (weighted-id-seq (seed-graph-for-ba 4)) '(0 0 0 1 1 1 2 2 2 3 3 3)))))
 
+(deftest random-choice-test
+  (testing "Test random choice"
+    (is (= (random-choice [1]) 1))
+    (is (contains? [1 2 3] (random-choice [1 2 3])))))
+
+(deftest random-n-unique-elements-test
+  (testing "Test random n unique elements"
+    (is (= (random-n-unique-elements [1] 1) #{1}))
+    (is (= (contains? [#{1} #{2}] (random-n-unique-elements [1 2] 1)) ))))
+
 (deftest barabasi-albert-graph-test
   (testing "Test B-A graph creation"
     (is (= (barabasi-albert-graph 0 4)
