@@ -16,23 +16,23 @@
 
 ;;; 
 ;;; Data creation
-(deftest graph-test
-  (testing "graph creation"
-    (is (= (graph []) []))
-    (is (= (graph [1 2 3]) [{:id 1, :neighbors [], :state :S, :time 1}
+(deftest new-graph-test
+  (testing "new graph creation"
+    (is (= (new-graph []) []))
+    (is (= (new-graph [1 2 3]) [{:id 1, :neighbors [], :state :S, :time 1}
                             {:id 2, :neighbors [], :state :S, :time 1}
                             {:id 3, :neighbors [], :state :S, :time 1}]))
-    (is (= (map :neighbors (graph [1 2 3])) [[] [] []]))
-    (is (= (map :state (graph [1 2 3])) [:S :S :S]))
-    (is (= (graph [1 2 3] [[2 3] [1] [1]])
+    (is (= (map :neighbors (new-graph [1 2 3])) [[] [] []]))
+    (is (= (map :state (new-graph [1 2 3])) [:S :S :S]))
+    (is (= (new-graph [1 2 3] [[2 3] [1] [1]])
            (seq '({:id 1, :neighbors [2 3], :state :S, :time 1}
                   {:id 2, :neighbors [1],   :state :S, :time 1}
                   {:id 3, :neighbors [1],   :state :S, :time 1}))))
-    (is (= (graph [1 2 3] [[2 3] [1] [1]] [:S :I :R])
+    (is (= (new-graph [1 2 3] [[2 3] [1] [1]] [:S :I :R])
            (seq '({:id 1, :neighbors [2 3], :state :S, :time 1}
                   {:id 2, :neighbors [1],   :state :I, :time 1}
                   {:id 3, :neighbors [1],   :state :R, :time 1}))))
-    (is (= (graph [1 2 3] [[2 3] [1] [1]] [:S :I :R] [1 2 3])
+    (is (= (new-graph [1 2 3] [[2 3] [1] [1]] [:S :I :R] [1 2 3])
            (seq '({:id 1, :neighbors [2 3], :state :S, :time 1}
                   {:id 2, :neighbors [1],   :state :I, :time 2}
                   {:id 3, :neighbors [1],   :state :R, :time 3}))))))

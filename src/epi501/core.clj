@@ -22,7 +22,7 @@
    {:id node-id, :neighbors neighbors, :state state, :time time}))
 
 ;; Function to create a population (graph) with specified ids
-(defn graph
+(defn new-graph
   "Function to create a graph with a vector of node infomation"
   ([node-ids]
    (map new-node node-ids))
