@@ -69,6 +69,20 @@
             2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}
             1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}}))))
 
+
+;;;
+;;; Random graph creation
+
+(deftest barabasi-albert-seed-graph-test
+  (testing "Test B-A seed graph creation"
+    (is (= (seed-graph-for-ba 0) {}))
+    (is (= (seed-graph-for-ba 1) {0 #epi501.core.Node{:id 0, :neighbors #{}, :state :S, :time 0}}))
+    (is (= (seed-graph-for-ba 2) {0 #epi501.core.Node{:id 0, :neighbors #{1}, :state :S, :time 0}
+                                  1 #epi501.core.Node{:id 1, :neighbors #{0}, :state :S, :time 0}}))
+    (is (= (seed-graph-for-ba 3) {0 #epi501.core.Node{:id 0, :neighbors #{1 2}, :state :S, :time 0}
+                                  1 #epi501.core.Node{:id 1, :neighbors #{0 2}, :state :S, :time 0}
+                                  2 #epi501.core.Node{:id 2, :neighbors #{0 1}, :state :S, :time 0}}))))
+
 (deftest barabasi-albert-graph-test
   (testing "Test B-A graph creation"
     (is (= (barabasi-albert-graph 0 4)

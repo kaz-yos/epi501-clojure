@@ -90,14 +90,31 @@
 
 
 ;;;
-;;; Random graph generation function
+;;; Random graph generation functions
 
+;; Function to create a fully connected seed
+(defn seed-graph-for-ba
+  "Function to create a graph consisting of m0 fully connected nodes"
+  [m0]
+  (->> (let [node-ids (range 0 m0)]
+         (for [ego-id node-ids]
+           ;; Create a node with all non-self as alters
+           (new-node ego-id (into #{}
+                                  (filter #(not (= % ego-id)) node-ids)))))
+       ;; Return as a graph
+       (map node->map-entry, )
+       (into {}, )))
+
+;; Function to create a 
 (defn barabasi-albert-graph
   "Function to construct a random graph using Barabási-Albert preferential attachment model
-  http://networkx.lanl.gov/reference/generated/networkx.generators.random_graphs.barabasi_albert_graph.html"
+  
+  http://networkx.lanl.gov/reference/generated/networkx.generators.random_graphs.barabasi_albert_graph.html
+  The algorithm follows the Wikipedia explanation.
+  http://en.wikipedia.org/wiki/Barabási–Albert_model#Algorithm"
   ;;
   ([n m]
-   (let [init-graph (new-graph (range 1 (inc m)))]
+   (let [init-graph (seed-graph-for-ba m)]
      (loop [acc init-graph]
        (cond
         true acc
