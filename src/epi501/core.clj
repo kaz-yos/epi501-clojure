@@ -2,7 +2,7 @@
   (:gen-class))
 
 
-;;; 
+;;;
 ;;; Data representation
 ;; See the test file
 
@@ -15,50 +15,36 @@
 ;; Function to return a new node with initial status
 (defn new-node
   "Function to create a node"
-  ([node-id]
-   (Node. node-id [] :S 1))
-  ([node-id neighbors]
-   (Node. node-id neighbors :S 1))
-  ([node-id neighbors state]
-   (Node. node-id neighbors state 1))
-  ([node-id neighbors state time]
-   (Node. node-id neighbors state time)))
+  ;; These just call the real body with default args
+  ([node-id]                      (new-node node-id [] :S 1))
+  ([node-id neighbors]            (new-node node-id neighbors :S 1))
+  ([node-id neighbors state]      (new-node node-id neighbors state 1))
+  ;; Real body
+  ([node-id neighbors state time] (Node. node-id neighbors state time)))
 
-;; Function to create a population (graph) with specified ids
+;; Function to create a graph with specified ids
 (defn new-graph
   "Function to create a graph with a vector of node infomation"
-  ([node-ids]
-   (map new-node node-ids))
-  ([node-ids neighborss]
-   (map new-node node-ids neighborss))
-  ([node-ids neighborss states]
-   (map new-node node-ids neighborss states))
-  ([node-ids neighborss states times]
-   (map new-node node-ids neighborss states times)))
+  ([node-ids]                         (map new-node node-ids))
+  ([node-ids neighborss]              (map new-node node-ids neighborss))
+  ([node-ids neighborss states]       (map new-node node-ids neighborss states))
+  ([node-ids neighborss states times] (map new-node node-ids neighborss states times)))
 
 ;; Add a new node
 (defn add-node
   "Function to add a new node to a graph"
-  ([graph node-id] 
-   (conj graph (new-node node-id)))
-  ([graph node-id neighbors] 
-   (conj graph (new-node node-id neighbors)))
-  ([graph node-id neighbors state] 
-   (conj graph (new-node node-id neighbors state)))
-  ([graph node-id neighbors state time] 
-   (conj graph (new-node node-id neighbors state time))))
+  ([graph node-id]                      (conj graph (new-node node-id)))
+  ([graph node-id neighbors]            (conj graph (new-node node-id neighbors)))
+  ([graph node-id neighbors state]      (conj graph (new-node node-id neighbors state)))
+  ([graph node-id neighbors state time] (conj graph (new-node node-id neighbors state time))))
 
 ;; Add multiple new nodes
 (defn add-nodes
   "Function to add multiple new nodes to a graph"
-  ([graph node-ids]   
-   (into  graph (new-graph node-ids)))
-  ([graph node-ids neighborss] 
-   (into graph (new-graph node-ids neighborss)))
-  ([graph node-ids neighborss states] 
-   (into graph (new-graph node-ids neighborss states)))
-  ([graph node-ids neighborss states times] 
-   (into graph (new-graph node-ids neighborss states times))))
+  ([graph node-ids]                         (into  graph (new-graph node-ids)))
+  ([graph node-ids neighborss]              (into graph (new-graph node-ids neighborss)))
+  ([graph node-ids neighborss states]       (into graph (new-graph node-ids neighborss states)))
+  ([graph node-ids neighborss states times] (into graph (new-graph node-ids neighborss states times))))
 
 
 ;; Add new neighbors to one node
@@ -111,7 +97,7 @@
   ([n m seed]
    :ba-w-seed))
 
-;;; 
+;;;
 ;;; Query functions
 ;; Function to obtain edges from a node
 ;; map -> seq seq
@@ -140,7 +126,7 @@
        ;; No need for sorting
        (set)))
 
-;;; 
+;;;
 ;;; Main function for entry
 (defn -main
   "I don't do a whole lot ... yet."
