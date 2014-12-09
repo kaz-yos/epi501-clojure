@@ -90,6 +90,21 @@
   :new-graph)
 
 
+;;;
+;;; Random graph generation function
+
+(defn barabasi-albert-graph
+  "Function to construct a random graph using Barabási-Albert preferential attachment model
+  http://networkx.lanl.gov/reference/generated/networkx.generators.random_graphs.barabasi_albert_graph.html"
+  ;;
+  ([n m]
+   (let [init-graph (new-graph (range 1 (inc m)))]
+     init-graph))
+  ;;
+  ;; Given a random number seed
+  ([n m seed]
+   :ba-w-seed))
+
 ;;; 
 ;;; Query functions
 ;; Function to obtain edges from a node

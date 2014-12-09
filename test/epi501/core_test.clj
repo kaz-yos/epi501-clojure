@@ -69,6 +69,15 @@
                   {:id 2, :neighbors [1], :state :S, :time 1}
                   {:id 1, :neighbors [2 3], :state :S, :time 1}))))))
 
+(deftest barabasi-albert-graph-test
+  (testing "Test B-A graph creation"
+    (is (= (barabasi-albert-graph 0 4)
+           (seq '({:id 1, :neighbors [], :state :S, :time 1}
+                  {:id 2, :neighbors [], :state :S, :time 1}
+                  {:id 3, :neighbors [], :state :S, :time 1}
+                  {:id 4, :neighbors [], :state :S, :time 1}))))))
+
+
 ;;; 
 ;;; Node-level information extraction 
 (deftest id-test
