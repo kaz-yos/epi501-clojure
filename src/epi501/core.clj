@@ -16,11 +16,11 @@
 (defn new-node
   "Function to create a node"
   ;; These just call the real body with default args
-  ([node-id]                      (new-node node-id [] :S 1))
+  ([node-id]                      (new-node node-id #{} :S 1))
   ([node-id neighbors]            (new-node node-id neighbors :S 1))
   ([node-id neighbors state]      (new-node node-id neighbors state 1))
-  ;; Real body
-  ([node-id neighbors state time] (Node. node-id neighbors state time)))
+  ;; Real body (use into to make sure it is a set)
+  ([node-id neighbors state time] (Node. node-id (into #{} neighbors) state time)))
 
 ;; Function to create a map entry from a node
 (defn node->map-entry
