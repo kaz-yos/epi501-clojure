@@ -103,11 +103,17 @@
 
 (deftest barabasi-albert-graph-test
   (testing "Test B-A graph creation"
-    (is (= (barabasi-albert-graph 0 4)
-           {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
-            2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}
-            3 #epi501.core.Node{:id 3, :neighbors #{}, :state :S, :time 0}
-            4 #epi501.core.Node{:id 4, :neighbors #{}, :state :S, :time 0}}))))
+    (is (= (barabasi-albert-graph 0 0) {}))
+    (is (= (barabasi-albert-graph 0 1)
+           {0 #epi501.core.Node{:id 0, :neighbors #{}, :state :S, :time 0}}))
+    (is (= (barabasi-albert-graph 0 2)
+           {0 #epi501.core.Node{:id 0, :neighbors #{}, :state :S, :time 0}
+            1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}}))
+    (is (= (barabasi-albert-graph 2 3)
+           {0 #epi501.core.Node{:id 0, :neighbors #{1}, :state :S, :time 0}
+            1 #epi501.core.Node{:id 1, :neighbors #{0}, :state :S, :time 0}
+            2 #epi501.core.Node{:id 2, :neighbors #{0 1}, :state :S, :time 0}}))
+    ))
 
 
 ;;; 

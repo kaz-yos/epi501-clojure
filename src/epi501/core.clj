@@ -155,13 +155,19 @@
   The algorithm follows the Wikipedia explanation.
   http://en.wikipedia.org/wiki/Barabási–Albert_model#Algorithm"
   ;;
-  ([n m]
-   (let [init-graph (seed-graph-for-ba m)]
-     ;;
-     (loop [acc init-graph]
-       (cond
-        true acc
-        :else (recur acc)))))
+  ([m n]
+   (if (> m n)
+     ;; invalid
+     (throw (Throwable. "m is used as the number of seed nodes; must be m <= n"))
+     ;; valid
+     (let [init-graph (seed-graph-for-ba m)]
+       ;;
+       (loop [acc init-graph
+              id-curr m]
+         (cond
+          (>= (count acc) n) acc
+          :else (let [neighbors (random-m-unique-elements (weighted-id-seq acc) m)]
+                  (recur (add-node acc id-curr neighbors) (inc id-curr))))))))
   ;;
   ;; Given a random number seed (not implemented yet)
   ([n m seed]
