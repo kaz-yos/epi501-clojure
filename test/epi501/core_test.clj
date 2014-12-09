@@ -19,19 +19,19 @@
 (deftest new-graph-test
   (testing "new graph creation"
     (is (= (new-graph []) {}))
-    (is (= (new-graph [1 2 3]) {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 1}
-                                2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 1}
-                                3 #epi501.core.Node{:id 3, :neighbors #{}, :state :S, :time 1}}))
+    (is (= (new-graph [1 2 3]) {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
+                                2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}
+                                3 #epi501.core.Node{:id 3, :neighbors #{}, :state :S, :time 0}}))
     (is (= (map :neighbors (vals (new-graph [1 2 3]))) [#{} #{} #{}]))
     (is (= (map :state (vals (new-graph [1 2 3]))) [:S :S :S]))
     (is (= (new-graph [1 2 3] [[2 3] [1] [1]])
-           {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 1}
-            2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :S, :time 1}
-            3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :S, :time 1}}))
+           {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}
+            2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :S, :time 0}
+            3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :S, :time 0}}))
     (is (= (new-graph [1 2 3] [[2 3] [1] [1]] [:S :I :R])
-           {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 1}
-            2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :I, :time 1}
-            3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :R, :time 1}}))
+           {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}
+            2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :I, :time 0}
+            3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :R, :time 0}}))
     (is (= (new-graph [1 2 3] [[2 3] [1] [1]] [:S :I :R] [1 2 3])
            {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 1}
             2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :I, :time 2}
@@ -39,43 +39,43 @@
 
 (deftest add-node-test
   (testing "Add a new node"
-    (is (= (add-node (new-graph []) 1)  {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 1}}))
-    (is (= (add-node (new-graph [1]) 2) {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 1}
-                                         2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 1}}))))
+    (is (= (add-node (new-graph []) 1)  {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}}))
+    (is (= (add-node (new-graph [1]) 2) {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
+                                         2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}}))))
 (deftest add-nodes-test
   (testing "Add new nodes"
-    (is (= (add-nodes (new-graph []) [1])    {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 1}}))
-    (is (= (add-nodes (new-graph [1]) [2])   {2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 1}
-                                              1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 1}}))
-    (is (= (add-nodes (new-graph [1]) [2 3]) {3 #epi501.core.Node{:id 3, :neighbors #{}, :state :S, :time 1}
-                                              2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 1}
-                                              1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 1}}))
+    (is (= (add-nodes (new-graph []) [1])    {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}}))
+    (is (= (add-nodes (new-graph [1]) [2])   {2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}
+                                              1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}}))
+    (is (= (add-nodes (new-graph [1]) [2 3]) {3 #epi501.core.Node{:id 3, :neighbors #{}, :state :S, :time 0}
+                                              2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}
+                                              1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}}))
     (is (= (add-nodes (new-graph [1]) [2 3] [[1] []] [:S :I])
-           {3 #epi501.core.Node{:id 3, :neighbors #{}, :state :I, :time 1}
-            2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 1}
-            1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 1}}))))
+           {3 #epi501.core.Node{:id 3, :neighbors #{}, :state :I, :time 0}
+            2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}
+            1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}}))))
 
 (deftest add-neighbors-test
   (testing "Add new neighbors to an existing node"
     (is (= (add-neighbors (new-graph [1 2 3]) 3 [1 2])
-           {3 #epi501.core.Node{:id 3, :neighbors #{1 2}, :state :S, :time 1}
-            1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 1}
-            2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 1}}))))
+           {3 #epi501.core.Node{:id 3, :neighbors #{1 2}, :state :S, :time 0}
+            1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
+            2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}}))))
 
 (deftest add-neighborss-test
   (testing "Add new neighbors to multiple existing nodes"
     (is (= (add-neighborss (new-graph [1 2 3]) [1 2 3] [[2 3] [1] [1]])
-           {3 #epi501.core.Node{:id 3, :neighbors #{1}, :state :S, :time 1}
-            2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 1}
-            1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 1}}))))
+           {3 #epi501.core.Node{:id 3, :neighbors #{1}, :state :S, :time 0}
+            2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}
+            1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}}))))
 
 (deftest barabasi-albert-graph-test
   (testing "Test B-A graph creation"
     (is (= (barabasi-albert-graph 0 4)
-           {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 1}
-            2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 1}
-            3 #epi501.core.Node{:id 3, :neighbors #{}, :state :S, :time 1}
-            4 #epi501.core.Node{:id 4, :neighbors #{}, :state :S, :time 1}}))))
+           {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
+            2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}
+            3 #epi501.core.Node{:id 3, :neighbors #{}, :state :S, :time 0}
+            4 #epi501.core.Node{:id 4, :neighbors #{}, :state :S, :time 0}}))))
 
 
 ;;; 
