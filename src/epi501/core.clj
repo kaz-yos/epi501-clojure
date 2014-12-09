@@ -59,7 +59,9 @@
 
 
 ;; Add new neighbors to one node
-(defn add-neighbors [graph node-id neighbors]
+(defn add-neighbors
+  "Function to add new neighbors to an existing node"
+  [graph node-id neighbors]
   (let [graph-rest (filter #(not (= (:id %) node-id)) graph)
         ;; Use destructuring to get a node out of a seq
         [node-of-interest] (filter #(= (:id %) node-id) graph)]
@@ -67,7 +69,9 @@
           (update-in node-of-interest [:neighbors] #(into % neighbors)))))
 
 ;; Add new neighbors to multiple nodes
-(defn add-neighborss [graph node-ids neighborss]
+(defn add-neighborss
+  "Function to add new neighbors to multiple existing nodes"
+  [graph node-ids neighborss]
   (loop [node-ids-curr   node-ids
          neighborss-curr neighborss
          acc             graph]
