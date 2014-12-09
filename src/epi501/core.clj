@@ -33,16 +33,37 @@
   ([node-ids neighborss states times]
    (map new-node node-ids neighborss states times)))
 
-;; Add new nodes
-(defn add-node [pop node-id]
-  :edges)
+;; Add a new node
+(defn add-node
+  "Function to add a new node to a graph"
+  ([graph node-id] 
+   (conj graph (new-node node-id)))
+  ([graph node-id neighbors] 
+   (conj graph (new-node node-id neighbors)))
+  ([graph node-id neighbors state] 
+   (conj graph (new-node node-id neighbors state)))
+  ([graph node-id neighbors state time] 
+   (conj graph (new-node node-id neighbors state time))))
+
+;; Add multiple new nodes
+(defn add-nodes
+  "Function to add multiple new nodes to a graph"
+  ([graph node-ids]   
+   (into  graph (new-graph node-ids)))
+  ([graph node-ids neighborss] 
+   (into graph (new-graph node-ids neighborss)))
+  ([graph node-ids neighborss states] 
+   (into graph (new-graph node-ids neighborss states)))
+  ([graph node-ids neighborss states times] 
+   (into graph (new-graph node-ids neighborss states times))))
+
 
 ;; Add new edges
 (defn add-edges []
   :edges)
 
 ;; Set state
-(defn set-state [pop node-ids states]
+(defn set-state [graph node-ids states]
   :new-pop)
 
 
@@ -61,16 +82,16 @@
 
 ;; function to extract unique undirected edges from a population
 ;; map vector -> seq set
-(defn unique-undirected-edge-set [pop]
-  (->> (map edges pop)
+(defn unique-undirected-edge-set [graph]
+  (->> (map edges graph)
        (reduce concat)
        (map sort)
        (set)))
 
 ;; function to extract unique directed edges from a population
 ;; map vector -> seq set
-(defn unique-directed-edge-set [pop]
-  (->> (map edges pop)
+(defn unique-directed-edge-set [graph]
+  (->> (map edges graph)
        (reduce concat)
        ;; No need for sorting
        (set)))

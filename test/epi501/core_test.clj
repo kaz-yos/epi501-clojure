@@ -11,7 +11,7 @@
 (def node4 (new-node 4 [3]   :S  2))
 (def node5 (new-node 5 []    :D2 3))
 ;; A population is a vector of nodes
-(def pop1 [node1 node2 node3 node4 node5])
+(def graph1 [node1 node2 node3 node4 node5])
 
 
 ;;; 
@@ -20,8 +20,8 @@
   (testing "new graph creation"
     (is (= (new-graph []) []))
     (is (= (new-graph [1 2 3]) [{:id 1, :neighbors [], :state :S, :time 1}
-                            {:id 2, :neighbors [], :state :S, :time 1}
-                            {:id 3, :neighbors [], :state :S, :time 1}]))
+                                {:id 2, :neighbors [], :state :S, :time 1}
+                                {:id 3, :neighbors [], :state :S, :time 1}]))
     (is (= (map :neighbors (new-graph [1 2 3])) [[] [] []]))
     (is (= (map :state (new-graph [1 2 3])) [:S :S :S]))
     (is (= (new-graph [1 2 3] [[2 3] [1] [1]])
@@ -37,6 +37,23 @@
                   {:id 2, :neighbors [1],   :state :I, :time 2}
                   {:id 3, :neighbors [1],   :state :R, :time 3}))))))
 
+(deftest add-node-test
+  (testing "Add a new node"
+    (is (= (add-node (new-graph []) 1) (seq '({:id 1, :neighbors [], :state :S, :time 1}))))
+    (is (= (add-node (new-graph [1]) 2) (seq '({:id 2, :neighbors [], :state :S, :time 1}
+                                               {:id 1, :neighbors [], :state :S, :time 1}))))))
+(deftest add-nodes-test
+  (testing "Add new nodes"
+    (is (= (add-nodes (new-graph []) [1]) (seq '({:id 1, :neighbors [], :state :S, :time 1}))))
+    (is (= (add-nodes (new-graph [1]) [2]) (seq '({:id 2, :neighbors [], :state :S, :time 1}
+                                                  {:id 1, :neighbors [], :state :S, :time 1}))))
+    (is (= (add-nodes (new-graph [1]) [2 3]) (seq '({:id 3, :neighbors [], :state :S, :time 1}
+                                                    {:id 2, :neighbors [], :state :S, :time 1}
+                                                    {:id 1, :neighbors [], :state :S, :time 1}))))
+    (is (= (add-nodes (new-graph [1]) [2 3] [[1] []] [:S :I])
+           (seq '({:id 3, :neighbors [], :state :I, :time 1}
+                  {:id 2, :neighbors [1], :state :S, :time 1}
+                  {:id 1, :neighbors [], :state :S, :time 1}))))))
 
 ;;; 
 ;;; Node-level information extraction 
@@ -84,9 +101,9 @@
 ;;; Population-level information extraction
 (deftest unique-undirected-edge-set-test
   (testing "Extraction of edge set"
-    (is (= (unique-undirected-edge-set pop1) #{[1 2] [1 3] [3 4]}))))
+    (is (= (unique-undirected-edge-set graph1) #{[1 2] [1 3] [3 4]}))))
 
 (deftest unique-directed-edge-set-test
   (testing "Extraction of edge set"
-    (is (= (unique-directed-edge-set pop1) #{[1 2] [1 3] [2 1] [3 1] [3 4] [4 3]}))))
+    (is (= (unique-directed-edge-set graph1) #{[1 2] [1 3] [2 1] [3 1] [3 4] [4 3]}))))
 
