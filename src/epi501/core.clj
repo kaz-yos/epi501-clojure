@@ -10,15 +10,31 @@
 ;;; Data creation functions
 
 ;; Function to return a new node with initial status
-(defn new-node [node-id]
-  {:id node-id, :neighbors [], :state :S, :time 1})
+(defn new-node
+  "Function to create a node"
+  ([node-id]
+   {:id node-id, :neighbors [], :state :S, :time 1})
+  ([node-id neighbors]
+   {:id node-id, :neighbors neighbors, :state :S, :time 1})
+  ([node-id neighbors state]
+   {:id node-id, :neighbors neighbors, :state state, :time 1})
+  ([node-id neighbors state time]
+   {:id node-id, :neighbors neighbors, :state state, :time time}))
 
 ;; Function to create a population (graph) with specified ids
-(defn graph [node-ids]
-  (map new-node node-ids))
+(defn graph
+  "Function to create a graph with a vector of node infomation"
+  ([node-ids]
+   (map new-node node-ids))
+  ([node-ids neighborss]
+   (map new-node node-ids neighborss))
+  ([node-ids neighborss states]
+   (map new-node node-ids neighborss states))
+  ([node-ids neighborss states times]
+   (map new-node node-ids neighborss states times)))
 
 ;; Add new nodes
-(defn add-nodes [pop ]
+(defn add-node [pop node-id]
   :edges)
 
 ;; Add new edges

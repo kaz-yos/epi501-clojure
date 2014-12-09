@@ -5,11 +5,11 @@
 ;;; 
 ;;; Data representation and definition
 ;; A node is a map with an id and a neighbors vector
-(def node1 {:id 1, :neighbors [2 3], :state :I,  :time 2})
-(def node2 {:id 2, :neighbors [1],   :state :R,  :time 1})
-(def node3 {:id 3, :neighbors [1 4], :state :E,  :time 1})
-(def node4 {:id 4, :neighbors [3],   :state :S,  :time 2})
-(def node5 {:id 5, :neighbors [],    :state :D2, :time 3})
+(def node1 (new-node 1 [2 3] :I  2))
+(def node2 (new-node 2 [1]   :R  1))
+(def node3 (new-node 3 [1 4] :E  1))
+(def node4 (new-node 4 [3]   :S  2))
+(def node5 (new-node 5 []    :D2 3))
 ;; A population is a vector of nodes
 (def pop1 [node1 node2 node3 node4 node5])
 
@@ -23,7 +23,19 @@
                             {:id 2, :neighbors [], :state :S, :time 1}
                             {:id 3, :neighbors [], :state :S, :time 1}]))
     (is (= (map :neighbors (graph [1 2 3])) [[] [] []]))
-    (is (= (map :state (graph [1 2 3])) [:S :S :S]))))
+    (is (= (map :state (graph [1 2 3])) [:S :S :S]))
+    (is (= (graph [1 2 3] [[2 3] [1] [1]])
+           (seq '({:id 1, :neighbors [2 3], :state :S, :time 1}
+                  {:id 2, :neighbors [1],   :state :S, :time 1}
+                  {:id 3, :neighbors [1],   :state :S, :time 1}))))
+    (is (= (graph [1 2 3] [[2 3] [1] [1]] [:S :I :R])
+           (seq '({:id 1, :neighbors [2 3], :state :S, :time 1}
+                  {:id 2, :neighbors [1],   :state :I, :time 1}
+                  {:id 3, :neighbors [1],   :state :R, :time 1}))))
+    (is (= (graph [1 2 3] [[2 3] [1] [1]] [:S :I :R] [1 2 3])
+           (seq '({:id 1, :neighbors [2 3], :state :S, :time 1}
+                  {:id 2, :neighbors [1],   :state :I, :time 2}
+                  {:id 3, :neighbors [1],   :state :R, :time 3}))))))
 
 
 ;;; 
