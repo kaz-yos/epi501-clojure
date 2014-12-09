@@ -105,6 +105,32 @@
        (map node->map-entry, )
        (into {}, )))
 
+
+;; Function to convert a graph to a weighted id seq
+(defn weighted-id-seq
+  "Function to convert a graph to a weighted id seq
+
+  This enforces the following sampling scheme:
+  pi = k_i / sum_j(k_j); where k_i is the degree of i-th node;
+  the denominator is the sum of all degrees (2 * num of edges)"
+  [graph]
+  (let [rep-id (fn [node]
+                 ;; Repeat the node id k_i times
+                 [(repeat (count (:neighbors node)) (:id node))])]
+    ;;
+    (->> graph
+         (vals, )
+         (map rep-id, )
+         (flatten, ))))
+
+(defn random-choice
+  "Randomly choose one element in a collection
+
+  Uses bigmlcom/sampling
+  https://github.com/bigmlcom/sampling"
+  [coll]
+  )
+
 ;; Function to create a 
 (defn barabasi-albert-graph
   "Function to construct a random graph using Barabási-Albert preferential attachment model

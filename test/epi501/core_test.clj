@@ -73,7 +73,7 @@
 ;;;
 ;;; Random graph creation
 
-(deftest barabasi-albert-seed-graph-test
+(deftest barabasi-albert-graph-test
   (testing "Test B-A seed graph creation"
     (is (= (seed-graph-for-ba 0) {}))
     (is (= (seed-graph-for-ba 1) {0 #epi501.core.Node{:id 0, :neighbors #{}, :state :S, :time 0}}))
@@ -82,6 +82,14 @@
     (is (= (seed-graph-for-ba 3) {0 #epi501.core.Node{:id 0, :neighbors #{1 2}, :state :S, :time 0}
                                   1 #epi501.core.Node{:id 1, :neighbors #{0 2}, :state :S, :time 0}
                                   2 #epi501.core.Node{:id 2, :neighbors #{0 1}, :state :S, :time 0}}))))
+
+(deftest weighted-id-seq-test
+  (testing "Test creation of weight ID sequence"
+    (is (= (weighted-id-seq (seed-graph-for-ba 0)) '()))
+    (is (= (weighted-id-seq (seed-graph-for-ba 1)) '()))
+    (is (= (weighted-id-seq (seed-graph-for-ba 2)) '(0 1)))
+    (is (= (weighted-id-seq (seed-graph-for-ba 3)) '(0 0 1 1 2 2)))
+    (is (= (weighted-id-seq (seed-graph-for-ba 4)) '(0 0 0 1 1 1 2 2 2 3 3 3)))))
 
 (deftest barabasi-albert-graph-test
   (testing "Test B-A graph creation"
