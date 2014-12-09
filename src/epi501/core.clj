@@ -99,7 +99,10 @@
   ;;
   ([n m]
    (let [init-graph (new-graph (range 1 (inc m)))]
-     init-graph))
+     (loop [acc init-graph]
+       (cond
+        true acc
+        :else (recur acc)))))
   ;;
   ;; Given a random number seed
   ([n m seed]
