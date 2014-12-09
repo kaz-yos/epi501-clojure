@@ -22,40 +22,50 @@
   ;; Real body
   ([node-id neighbors state time] (Node. node-id neighbors state time)))
 
+;; Function to create a map entry from a node
+(defn node->map-entry
+  "Function to create a map entry from a node"
+  [node]
+  [(:id node) node])
+
 ;; Function to create a graph with specified ids
 (defn new-graph
   "Function to create a graph with a vector of node infomation"
-  ([node-ids]                         (map new-node node-ids))
-  ([node-ids neighborss]              (map new-node node-ids neighborss))
-  ([node-ids neighborss states]       (map new-node node-ids neighborss states))
-  ([node-ids neighborss states times] (map new-node node-ids neighborss states times)))
-
-;; Add a new node
-(defn add-node
-  "Function to add a new node to a graph"
-  ([graph node-id]                      (conj graph (new-node node-id)))
-  ([graph node-id neighbors]            (conj graph (new-node node-id neighbors)))
-  ([graph node-id neighbors state]      (conj graph (new-node node-id neighbors state)))
-  ([graph node-id neighbors state time] (conj graph (new-node node-id neighbors state time))))
+  ([node-ids]                         (->> (map new-node node-ids)
+                                           (map node->map-entry, )
+                                           (into {}, )))
+  ([node-ids neighborss]              (->> (map new-node node-ids neighborss)
+                                           (map node->map-entry, )
+                                           (into {}, )))
+  ([node-ids neighborss states]       (->> (map new-node node-ids neighborss states)
+                                           (map node->map-entry, )
+                                           (into {}, )))
+  ([node-ids neighborss states times] (->> (map new-node node-ids neighborss states times)
+                                           (map node->map-entry, )
+                                           (into {}, ))))
 
 ;; Add multiple new nodes
 (defn add-nodes
   "Function to add multiple new nodes to a graph"
-  ([graph node-ids]                         (into  graph (new-graph node-ids)))
+  ([graph node-ids]                         (into graph (new-graph node-ids)))
   ([graph node-ids neighborss]              (into graph (new-graph node-ids neighborss)))
   ([graph node-ids neighborss states]       (into graph (new-graph node-ids neighborss states)))
   ([graph node-ids neighborss states times] (into graph (new-graph node-ids neighborss states times))))
+
+;; Add a new node (syntax sugar for a single node addition)
+(defn add-node
+  "Function to add a single new node to a graph"
+  ([graph node-id]                      (add-nodes graph [node-id]))
+  ([graph node-id neighbors]            (add-nodes graph [node-id] [neighbors]))
+  ([graph node-id neighbors state]      (add-nodes graph [node-id] [neighbors] [state]))
+  ([graph node-id neighbors state time] (add-nodes graph [node-id] [neighbors] [state] [time])))
 
 
 ;; Add new neighbors to one node
 (defn add-neighbors
   "Function to add new neighbors to an existing node"
   [graph node-id neighbors]
-  (let [graph-rest (filter #(not (= (:id %) node-id)) graph)
-        ;; Use destructuring to get a node out of a seq
-        [node-of-interest] (filter #(= (:id %) node-id) graph)]
-    (conj graph-rest
-          (update-in node-of-interest [:neighbors] #(into % neighbors)))))
+  (update-in graph [node-id :neighbors] #(into % neighbors)))
 
 ;; Add new neighbors to multiple nodes
 (defn add-neighborss
