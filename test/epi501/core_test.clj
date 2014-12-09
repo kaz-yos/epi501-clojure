@@ -96,10 +96,10 @@
     (is (= (random-choice [1]) 1))
     (is (contains? [1 2 3] (random-choice [1 2 3])))))
 
-(deftest random-n-unique-elements-test
-  (testing "Test random n unique elements"
-    (is (= (random-n-unique-elements [1] 1) #{1}))
-    (is (= (contains? [#{1} #{2}] (random-n-unique-elements [1 2] 1)) ))))
+(deftest random-m-unique-elements-test
+  (testing "Test random m unique elements"
+    (is (= (random-m-unique-elements [1] 1) #{1}))
+    (is (= (contains? [#{1} #{2}] (random-m-unique-elements [1 2] 1))))))
 
 (deftest barabasi-albert-graph-test
   (testing "Test B-A graph creation"

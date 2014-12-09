@@ -130,20 +130,20 @@
   (rand-nth coll))
 
 ;; Function to randomly pick n unique elements
-(defn random-n-unique-elements
+(defn random-m-unique-elements
   "Function to randomly pick n unique elements
 
   Continue picking until a set has the desired length."
-  [coll n]
+  [coll m]
   ;; First check if there are enough unique elements to pick n unique element
-  (if (< (count (set coll)) n)
+  (if (< (count (set coll)) m)
     ;; invalid
     ;; http://stackoverflow.com/questions/5459865/how-can-i-throw-an-exception-in-clojure
     (throw (Throwable. "Not enough unique elements in the collection"))
     ;; valid
     (loop [acc #{}]
       (cond
-       (= (count acc) n) acc
+       (= (count acc) m) acc
        :else (recur (conj acc (random-choice coll)))))))
 
 ;; Function to create a Brabasi-Albert network
