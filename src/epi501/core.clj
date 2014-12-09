@@ -9,17 +9,20 @@
 ;;;
 ;;; Data creation functions
 
+;; Define a record (Define a class with named fields)
+(defrecord Node [id neighbors state time])
+
 ;; Function to return a new node with initial status
 (defn new-node
   "Function to create a node"
   ([node-id]
-   {:id node-id, :neighbors [], :state :S, :time 1})
+   (Node. node-id [] :S 1))
   ([node-id neighbors]
-   {:id node-id, :neighbors neighbors, :state :S, :time 1})
+   (Node. node-id neighbors :S 1))
   ([node-id neighbors state]
-   {:id node-id, :neighbors neighbors, :state state, :time 1})
+   (Node. node-id neighbors state 1))
   ([node-id neighbors state time]
-   {:id node-id, :neighbors neighbors, :state state, :time time}))
+   (Node. node-id neighbors state time)))
 
 ;; Function to create a population (graph) with specified ids
 (defn new-graph
