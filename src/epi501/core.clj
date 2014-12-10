@@ -66,10 +66,10 @@
 (defn add-node
   "Function to add a single new node to a graph"
   ([graph new-node] (conj graph (node->map-entry new-node)))
-  ;; Use this body if there is a third argument
+  ;; Use this body if there is a third argument (undirectional add-node)
   ([graph new-node undirectional]
-   (->> (let [new-node-id-as-neighbor  (:id new-node)]
-          ;; 
+   (->> (let [new-node-id-as-neighbor (:id new-node)]
+          ;;
           (loop [acc             graph
                  nodes-to-update (:neighbors new-node)]
             (cond
@@ -81,14 +81,23 @@
 
 ;; Add multiple new nodes
 (defn add-nodes
-  "Function to add multiple new nodes to a graph"
-  ;; ([graph new-nodes] (into graph (new-graph new-nodes)))
+  "Function to add multiple new nodes to a graph
+
+  Uses add-node and loop over all new-nodes"
   ([graph new-nodes]
    (loop [acc        graph
           nodes-curr new-nodes]
      (cond
       (empty? nodes-curr) acc
       :else (recur (add-node acc (first nodes-curr))
+                   (rest nodes-curr)))))
+  ;; Body for undirectional (undirectional add-node)
+  ([graph new-nodes undirectional]
+   (loop [acc        graph
+          nodes-curr new-nodes]
+     (cond
+      (empty? nodes-curr) acc
+      :else (recur (add-node acc (first nodes-curr) :undirectional)
                    (rest nodes-curr))))))
 
 ;; Set state

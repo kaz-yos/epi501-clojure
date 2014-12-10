@@ -48,9 +48,14 @@
     (is (= (add-node (new-graph (new-nodes [1])) (new-node 2 [1]))
            {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
             2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}}))
+    ;; Undirectional cases
     (is (= (add-node (new-graph (new-nodes [1])) (new-node 2 [1]) :undirectional)
            {1 #epi501.core.Node{:id 1, :neighbors #{2}, :state :S, :time 0}
-            2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}}))))
+            2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}}))
+    (is (= (add-node (new-graph (new-nodes [1 2])) (new-node 3 [1 2]) :undirectional)
+           {1 #epi501.core.Node{:id 1, :neighbors #{3}, :state :S, :time 0}
+            2 #epi501.core.Node{:id 2, :neighbors #{3}, :state :S, :time 0}
+            3 #epi501.core.Node{:id 3, :neighbors #{1 2}, :state :S, :time 0}}))))
 
 (deftest add-nodes-test
   (testing "Add new nodes"
@@ -66,7 +71,17 @@
     (is (= (add-nodes (new-graph (new-nodes [1])) (new-nodes [2 3] [[1] []] [:S :I]))
            {3 #epi501.core.Node{:id 3, :neighbors #{}, :state :I, :time 0}
             2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}
-            1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}}))))
+            1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}}))
+    ;; Undirectional cases
+    (is (= (add-nodes (new-graph (new-nodes [1])) (new-nodes [2 3] [[1] [1]] [:S :I]) :undirectional)
+           {3 #epi501.core.Node{:id 3, :neighbors #{1}, :state :I, :time 0}
+            2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}
+            1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}}))
+    (is (= (add-nodes (new-graph (new-nodes [1 2] [[2] [1]])) (new-nodes [3 4] [[1 2] [1 2]] [:S :I]) :undirectional)
+           {4 #epi501.core.Node{:id 4, :neighbors #{1 2}, :state :I, :time 0}
+            3 #epi501.core.Node{:id 3, :neighbors #{1 2}, :state :S, :time 0}
+            2 #epi501.core.Node{:id 2, :neighbors #{1 4 3}, :state :S, :time 0}
+            1 #epi501.core.Node{:id 1, :neighbors #{2 3 4}, :state :S, :time 0}}))))
 
 (deftest add-neighbors-test
   (testing "Add new neighbors to an existing node"
