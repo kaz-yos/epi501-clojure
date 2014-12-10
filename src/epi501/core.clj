@@ -28,38 +28,31 @@
   [node]
   [(:id node) node])
 
+;; Function to create multiple new nodes
+(defn new-nodes
+  "Function to create a graph with a vector of node infomation"
+  ([node-ids]                         (map new-node node-ids))
+  ([node-ids neighborss]              (map new-node node-ids neighborss))
+  ([node-ids neighborss states]       (map new-node node-ids neighborss states))
+  ([node-ids neighborss states times] (map new-node node-ids neighborss states times)))
+
 ;; Function to create a graph with specified ids
 (defn new-graph
   "Function to create a graph with a vector of node infomation"
-  ([node-ids]                         (->> (map new-node node-ids)
-                                           (map node->map-entry, )
-                                           (into {}, )))
-  ([node-ids neighborss]              (->> (map new-node node-ids neighborss)
-                                           (map node->map-entry, )
-                                           (into {}, )))
-  ([node-ids neighborss states]       (->> (map new-node node-ids neighborss states)
-                                           (map node->map-entry, )
-                                           (into {}, )))
-  ([node-ids neighborss states times] (->> (map new-node node-ids neighborss states times)
-                                           (map node->map-entry, )
-                                           (into {}, ))))
+  [new-nodes]
+  (->> new-nodes
+       (map node->map-entry, )
+       (into {}, )))
 
 ;; Add multiple new nodes
 (defn add-nodes
   "Function to add multiple new nodes to a graph"
-  ([graph node-ids]                         (into graph (new-graph node-ids)))
-  ([graph node-ids neighborss]              (into graph (new-graph node-ids neighborss)))
-  ([graph node-ids neighborss states]       (into graph (new-graph node-ids neighborss states)))
-  ([graph node-ids neighborss states times] (into graph (new-graph node-ids neighborss states times))))
+  [graph new-nodes] (into graph (new-graph new-nodes)))
 
-;; Add a new node (syntax sugar for a single node addition)
+;; Add a new node (syntax sugar for add-nodes)
 (defn add-node
   "Function to add a single new node to a graph"
-  ([graph node-id]                      (add-nodes graph [node-id]))
-  ([graph node-id neighbors]            (add-nodes graph [node-id] [neighbors]))
-  ([graph node-id neighbors state]      (add-nodes graph [node-id] [neighbors] [state]))
-  ([graph node-id neighbors state time] (add-nodes graph [node-id] [neighbors] [state] [time])))
-
+  [graph new-node] (add-nodes graph [new-node]))
 
 ;; Add new neighbors to one node
 (defn add-neighbors
@@ -167,7 +160,7 @@
          (cond
           (>= (count acc) n) acc
           :else (let [neighbors (random-m-unique-elements (weighted-id-seq acc) m)]
-                  (recur (add-node acc id-curr neighbors) (inc id-curr))))))))
+                  (recur (add-node acc (new-node id-curr neighbors)) (inc id-curr))))))))
   ;;
   ;; Given a random number seed (not implemented yet)
   ([n m seed]
