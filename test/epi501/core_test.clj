@@ -195,9 +195,11 @@
 ;;; Population-level information extraction
 (deftest unique-undirected-edge-set-test
   (testing "Extraction of edge set"
-    (is (= (unique-undirected-edge-set graph1) #{[1 2] [1 3] [3 4]}))))
+    (is (= (unique-undirected-edge-set graph1) #{[1 2] [1 3] [3 4]}))
+    (is (= (count (unique-undirected-edge-set (barabasi-albert-graph 5 100 :undirectional))) (+ 10 (* 95 5))))))
 
 (deftest unique-directed-edge-set-test
   (testing "Extraction of edge set"
-    (is (= (unique-directed-edge-set graph1) #{[1 2] [1 3] [2 1] [3 1] [3 4] [4 3]}))))
+    (is (= (unique-directed-edge-set graph1) #{[1 2] [1 3] [2 1] [3 1] [3 4] [4 3]}))
+    (is (= (count (unique-directed-edge-set (barabasi-albert-graph 5 100 :undirectional))) (+ (* 5 4) (* 95 5 2))))))
 
