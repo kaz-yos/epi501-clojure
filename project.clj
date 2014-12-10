@@ -7,7 +7,8 @@
 
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :dependencies [[org.clojure/clojure "1.6.0"]]
+  :dependencies [[org.clojure/clojure "1.6.0"]
+                 [bigml/sampling "3.0"]]
 
   :main ^:skip-aot epi501.core
 
