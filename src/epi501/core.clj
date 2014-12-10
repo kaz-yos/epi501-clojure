@@ -68,13 +68,16 @@
   ([graph new-node] (conj graph (node->map-entry new-node)))
   ;; Use this body if there is a third argument
   ([graph new-node undirectional]
-   (let [new-node-id-as-neighbor  (:id new-node)]
-     (loop [acc             graph
-            nodes-to-update (:neighbors new-node)]
-       (cond
-        (empty? nodes-to-update) acc
-        :else (recur (add-neighbors acc (first nodes-to-update) new-node-id-as-neighbor)
-                     (rest nodes-to-update)))))))
+   (->> (let [new-node-id-as-neighbor  (:id new-node)]
+          ;; 
+          (loop [acc             graph
+                 nodes-to-update (:neighbors new-node)]
+            (cond
+             (empty? nodes-to-update) acc
+             :else (recur (add-neighbors acc (first nodes-to-update) [new-node-id-as-neighbor])
+                          (rest nodes-to-update)))))
+        ;;
+        (#(conj % (node->map-entry new-node))))))
 
 ;; Add multiple new nodes
 (defn add-nodes

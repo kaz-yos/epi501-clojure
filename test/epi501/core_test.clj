@@ -42,10 +42,15 @@
   (testing "Add a new node"
     (is (= (add-node (new-graph (new-nodes [])) (new-node 1))
            {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}}))
-    
     (is (= (add-node (new-graph (new-nodes [1])) (new-node 2))
            {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
-            2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}}))))
+            2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}}))    
+    (is (= (add-node (new-graph (new-nodes [1])) (new-node 2 [1]))
+           {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
+            2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}}))
+    (is (= (add-node (new-graph (new-nodes [1])) (new-node 2 [1]) :undirectional)
+           {1 #epi501.core.Node{:id 1, :neighbors #{2}, :state :S, :time 0}
+            2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}}))))
 
 (deftest add-nodes-test
   (testing "Add new nodes"
