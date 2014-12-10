@@ -141,6 +141,11 @@
            {0 #epi501.core.Node{:id 0, :neighbors #{1}, :state :S, :time 0}
             1 #epi501.core.Node{:id 1, :neighbors #{0}, :state :S, :time 0}
             2 #epi501.core.Node{:id 2, :neighbors #{0 1}, :state :S, :time 0}}))
+    ;; Undirected cases
+    (is (= (barabasi-albert-graph 2 3 :undirectional)
+           {0 #epi501.core.Node{:id 0, :neighbors #{1 2}, :state :S, :time 0}
+            1 #epi501.core.Node{:id 1, :neighbors #{0 2}, :state :S, :time 0}
+            2 #epi501.core.Node{:id 2, :neighbors #{0 1}, :state :S, :time 0}}))
     ))
 
 
