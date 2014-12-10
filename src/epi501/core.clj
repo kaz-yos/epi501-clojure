@@ -44,15 +44,24 @@
        (map node->map-entry, )
        (into {}, )))
 
+;; Add a new node
+(defn add-node
+  "Function to add a single new node to a graph"
+  ([graph new-node] (conj graph (node->map-entry new-node)))
+  ;; Use this body if there is a third argument
+  ([graph new-node undirectional] :undirectional))
+
 ;; Add multiple new nodes
 (defn add-nodes
   "Function to add multiple new nodes to a graph"
-  [graph new-nodes] (into graph (new-graph new-nodes)))
-
-;; Add a new node (syntax sugar for add-nodes)
-(defn add-node
-  "Function to add a single new node to a graph"
-  [graph new-node] (add-nodes graph [new-node]))
+  ;; ([graph new-nodes] (into graph (new-graph new-nodes)))
+  ([graph new-nodes]
+   (loop [acc        graph
+          nodes-curr new-nodes]
+     (cond
+      (empty? nodes-curr) acc
+      :else (recur (add-node acc (first nodes-curr))
+                   (rest nodes-curr))))))
 
 ;; Add new neighbors to one node
 (defn add-neighbors
