@@ -212,18 +212,22 @@
 ;; function to extract unique undirected edges from a population
 ;; map vector -> seq set
 (defn unique-undirected-edge-set [graph]
-  (->> (map edges graph)
-       (reduce concat)
-       (map sort)
-       (set)))
+  (->> graph
+       (vals, )
+       (map edges, )
+       (reduce concat, )
+       (map sort, )
+       (set, )))
 
 ;; function to extract unique directed edges from a population
 ;; map vector -> seq set
 (defn unique-directed-edge-set [graph]
-  (->> (map edges graph)
-       (reduce concat)
+  (->> graph
+       (vals, )
+       (map edges, )
+       (reduce concat, )
        ;; No need for sorting
-       (set)))
+       (set, )))
 
 ;;;
 ;;; Main function for entry

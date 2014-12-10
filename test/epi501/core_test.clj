@@ -11,7 +11,7 @@
 (def node4 (new-node 4 [3]   :S  2))
 (def node5 (new-node 5 []    :D2 3))
 ;; A population is a vector of nodes
-(def graph1 [node1 node2 node3 node4 node5])
+(def graph1 (new-graph [node1 node2 node3 node4 node5]))
 
 
 ;;; 
