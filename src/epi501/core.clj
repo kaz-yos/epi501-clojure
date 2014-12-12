@@ -259,14 +259,18 @@
 ;;;
 ;;; Time lapse functions
 
-
-;; Function to change status stochastically
+;; Function to simulate time lapse
+(defn time-lapse
+  "Function to simulate time lapse"
+  [graph]
+  :time-lapsed-graph)
 
 ;; Function to try to infect people in target-ids
-(defn transmit [graph target-ids]
+(defn transmit
+  "Function to try to infect people in target-ids"
+  [graph target-ids]
   ;; use function to update state
-  :out
-  )
+  :out)
 
 
 
