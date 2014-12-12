@@ -36,7 +36,9 @@
     (is (= (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]] [:S :I :R] [1 2 3]))
            {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 1}
             2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :I, :time 2}
-            3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :R, :time 3}}))))
+            3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :R, :time 3}}))
+    (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:I :R :E :S :D2] [2 1 1 2 3]))
+           graph1))))
 
 (deftest add-node-test
   (testing "Add a new node"
@@ -96,6 +98,33 @@
            {3 #epi501.core.Node{:id 3, :neighbors #{1}, :state :S, :time 0}
             2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}
             1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}}))))
+
+
+;;;
+;;; Node update functions
+
+(deftest set-field-test
+  (testing "Change a node's status"
+    (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [2 1 1 2 3]))
+           (set-field (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                            [:I :R :E :S :D2] [2 1 1 2 3]))
+                      1 :state :S)))
+    (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [2 1 1 2 3]))
+           (set-state (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                            [:I :R :E :S :D2] [2 1 1 2 3]))
+                      1 :S)))
+    (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [1 1 1 2 3]))
+           (set-time (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                           [:S :R :E :S :D2] [2 1 1 2 3]))
+                     1 1)))
+    (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [3 1 1 2 3]))
+           (inc-time (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                           [:S :R :E :S :D2] [2 1 1 2 3]))
+                     1)))
+    (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [0 1 1 2 3]))
+           (reset-time (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                             [:S :R :E :S :D2] [2 1 1 2 3]))
+                       1)))))
 
 
 ;;;

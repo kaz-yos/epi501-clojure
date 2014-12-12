@@ -112,13 +112,31 @@
 ;;;
 ;;; Node update functions
 
-;; Set state
-(defn set-state [graph node-id state]
-  :new-graph)
+;; Generic version to set a new field value
+(defn set-field
+  "Function to set a specified field to a new value"
+  [graph node-id field new-field-val]  
+  (assoc-in graph [node-id field] new-field-val))
 
-;; Set time
-(defn set-time [graph node-ids times]
-  :new-graph)
+;; Function to set state
+;; record map, num, keyword -> map
+(def set-state #(set-field %1 %2 :state %3))
+
+;; Function to set time to an arbitrary time
+;; record map, num, num -> map
+(defn set-time
+  "Function to set time to an arbitrary time"
+  [graph node-id new-time]
+  (assoc-in graph [node-id :time] new-time))
+
+;; Function to increment time by one
+(defn inc-time
+  "Function to increment time by one"
+  [graph node-id]
+  (update-in graph [node-id :time] inc))
+
+;; Function to reset time to zero
+(def reset-time #(set-time %1 %2 0))
 
 
 ;;;
