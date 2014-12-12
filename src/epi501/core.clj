@@ -294,6 +294,9 @@
     (vals, )
     (map :state, )))
 
+;; Map of having 0 for all states
+(defn all-states-zero {:S 0, :E 0, :I 0, :R 0, :H 0, :D1 0, :D2 0})
+
 ;; Function to count each states
 (defn state-freq
   "Function to count each states"
