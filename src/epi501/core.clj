@@ -49,8 +49,8 @@
   "Function to create a graph with a vector of node infomation"
   [new-nodes]
   (->> new-nodes
-       (map node->map-entry, )
-       (into {}, )))
+    (map node->map-entry, )
+    (into {}, )))
 
 ;; Add new neighbors to one node
 (defn add-neighbors
@@ -66,9 +66,9 @@
          neighborss-curr neighborss
          acc             graph]
     (cond
-     (empty? node-ids-curr) acc
-     :else (recur (rest node-ids-curr) (rest neighborss-curr)
-                  (add-neighbors acc (first node-ids-curr) (first neighborss-curr))))))
+      (empty? node-ids-curr) acc
+      :else (recur (rest node-ids-curr) (rest neighborss-curr)
+                   (add-neighbors acc (first node-ids-curr) (first neighborss-curr))))))
 
 ;; Add a new node
 (defn add-node
@@ -81,11 +81,11 @@
           (loop [acc             graph
                  nodes-to-update (:neighbors new-node)]
             (cond
-             (empty? nodes-to-update) acc
-             :else (recur (add-neighbors acc (first nodes-to-update) [new-node-id-as-neighbor])
-                          (rest nodes-to-update)))))
-        ;;
-        (#(conj % (node->map-entry new-node))))))
+              (empty? nodes-to-update) acc
+              :else (recur (add-neighbors acc (first nodes-to-update) [new-node-id-as-neighbor])
+                           (rest nodes-to-update)))))
+     ;;
+     (#(conj % (node->map-entry new-node))))))
 
 ;; Add multiple new nodes
 (defn add-nodes
@@ -96,17 +96,17 @@
    (loop [acc        graph
           nodes-curr new-nodes]
      (cond
-      (empty? nodes-curr) acc
-      :else (recur (add-node acc (first nodes-curr))
-                   (rest nodes-curr)))))
+       (empty? nodes-curr) acc
+       :else (recur (add-node acc (first nodes-curr))
+                    (rest nodes-curr)))))
   ;; Body for undirectional (undirectional add-node)
   ([graph new-nodes undirectional]
    (loop [acc        graph
           nodes-curr new-nodes]
      (cond
-      (empty? nodes-curr) acc
-      :else (recur (add-node acc (first nodes-curr) :undirectional)
-                   (rest nodes-curr))))))
+       (empty? nodes-curr) acc
+       :else (recur (add-node acc (first nodes-curr) :undirectional)
+                    (rest nodes-curr))))))
 
 
 ;;;
@@ -115,7 +115,7 @@
 ;; Generic version to set a new field value
 (defn set-field
   "Function to set a specified field to a new value"
-  [graph node-id field new-field-val]  
+  [graph node-id field new-field-val]
   (assoc-in graph [node-id field] new-field-val))
 
 ;; Function to set the same fields for multiple nodes
@@ -182,9 +182,9 @@
            ;; Create a node with all non-self as alters
            (new-node ego-id (into #{}
                                   (filter #(not (= % ego-id)) node-ids)))))
-       ;; Return as a graph
-       (map node->map-entry, )
-       (into {}, )))
+    ;; Return as a graph
+    (map node->map-entry, )
+    (into {}, )))
 
 
 ;; Function to convert a graph to a weighted id seq
@@ -200,9 +200,9 @@
                  [(repeat (count (:neighbors node)) (:id node))])]
     ;;
     (->> graph
-         (vals, )
-         (map rep-id, )
-         (flatten, ))))
+      (vals, )
+      (map rep-id, )
+      (flatten, ))))
 
 ;; Function to pick one (wrapped for future improvement)
 (defn random-choice
@@ -224,8 +224,8 @@
     ;; valid
     (loop [acc #{}]
       (cond
-       (= (count acc) m) acc
-       :else (recur (conj acc (random-choice coll)))))))
+        (= (count acc) m) acc
+        :else (recur (conj acc (random-choice coll)))))))
 
 ;; Function to create a Brabasi-Albert network
 (defn barabasi-albert-graph
@@ -249,42 +249,48 @@
        (loop [acc init-graph
               id-curr m]
          (cond
-          (>= (count acc) n) acc
-          :else (let [neighbors (random-m-unique-elements (weighted-id-seq acc) m)]
-                  (recur (add-node-fun acc (new-node id-curr neighbors)) (inc id-curr)))))))))
+           (>= (count acc) n) acc
+           :else (let [neighbors (random-m-unique-elements (weighted-id-seq acc) m)]
+                   (recur (add-node-fun acc (new-node id-curr neighbors)) (inc id-curr)))))))))
 
 ;;;
 ;;; Query functions
 ;; Function to obtain edges from a node
 ;; map -> seq seq
-(defn edges [node]
+(defn edges
+  "Function to obtain edges from a node"
+  [node]
   (let [ego-id    (:id node)
         alter-ids (:neighbors node)
         edge      (fn [alter-id]
                     [ego-id alter-id])]
     (cond
-     (empty? alter-ids) '() ; empty seq of seqs
-     :else              (map edge alter-ids))))
+      (empty? alter-ids) '() ; empty seq of seqs
+      :else              (map edge alter-ids))))
 
-;; Function to extract unique undirected edges from a population
+;; Function to extract unique undirected edges from a graph
 ;; map vector -> seq set
-(defn unique-undirected-edge-set [graph]
+(defn unique-undirected-edge-set
+  "Function to extract unique undirected edges from a graph"
+  [graph]
   (->> graph
-       (vals, )
-       (map edges, )
-       (reduce concat, )
-       (map sort, )
-       (set, )))
+    (vals, )
+    (map edges, )
+    (reduce concat, )
+    (map sort, )
+    (set, )))
 
-;; Function to extract unique directed edges from a population
+;; Function to extract unique directed edges from a graph
 ;; map vector -> seq set
-(defn unique-directed-edge-set [graph]
+(defn unique-directed-edge-set
+  "Function to extract unique directed edges from a graph"
+  [graph]
   (->> graph
-       (vals, )
-       (map edges, )
-       (reduce concat, )
-       ;; No need for sorting
-       (set, )))
+    (vals, )
+    (map edges, )
+    (reduce concat, )
+    ;; No need for sorting
+    (set, )))
 
 ;; Function to check states of nodes
 (defn states
@@ -295,7 +301,7 @@
     (map :state, )))
 
 ;; Map of having 0 for all states
-(defn all-states-zero {:S 0, :E 0, :I 0, :R 0, :H 0, :D1 0, :D2 0})
+(def all-states-zero {:S 0, :E 0, :I 0, :R 0, :H 0, :D1 0, :D2 0})
 
 ;; Function to count each states
 (defn state-freq
@@ -304,11 +310,24 @@
   (->> graph
     (states, )
     (frequencies, )
-    (merge-with + {:S 0, :E 0, :I 0, :R 0, :H 0, :D1 0, :D2 0}, )))
+    (merge-with + all-states-zero, )))
 
 
 ;;;
 ;;; Time lapse functions
+
+;; Transition parameters
+(def p-I->R  (* (/ 1 14) 0.65 ))
+(def p-I->D1 (* (/ 1 14) 0.35 0.5))
+(def p-I->D2 (* (/ 1 14) 0.35 0.5))
+
+;; Function for I -> X stochastic transition
+(defn I->X
+  "Function for I -> X stochastic transition for a node"
+  [graph node-id]
+  (cond
+    (< (rand) p-I->R) (set-state graph node-id :R)
+    :else graph))
 
 ;; Function to simulate time lapse
 (defn time-lapse
