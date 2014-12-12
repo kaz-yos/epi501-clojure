@@ -133,7 +133,15 @@
     (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:I :I :I :I :I] [2 1 1 2 3]))
            (set-states (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
                                              [:S :R :E :S :D2] [2 1 1 2 3]))
-                       [1 2 3 4 5] :I)))))
+                       [1 2 3 4 5] :I)))
+    (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [0 0 0 0 0]))
+           (set-times (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                            [:S :R :E :S :D2] [2 1 1 2 3]))
+                      [1 2 3 4 5] 0)))
+    (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [1 1 1 1 1]))
+           (inc-times (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                            [:S :R :E :S :D2] [0 0 0 0 0]))
+                      [1 2 3 4 5])))))
 
 
 ;;;

@@ -139,10 +139,18 @@
 
 ;; Function to set time to an arbitrary time
 ;; record map, num, num -> map
-(defn set-time
-  "Function to set time to an arbitrary time"
-  [graph node-id new-time]
-  (assoc-in graph [node-id :time] new-time))
+(def set-time #(set-field %1 %2 :time %3))
+
+;; Function to set times to an arbitrary time
+(def set-times #(set-fields %1 %2 :time %3))
+
+
+;; Function to reset time to zero
+(def reset-time #(set-time %1 %2 0))
+
+;; Function to reset times to zero
+(def reset-times #(set-times %1 %2 0))
+
 
 ;; Function to increment time by one
 (defn inc-time
@@ -150,8 +158,16 @@
   [graph node-id]
   (update-in graph [node-id :time] inc))
 
-;; Function to reset time to zero
-(def reset-time #(set-time %1 %2 0))
+;; Function to increment times by one
+(defn inc-times
+  "Function to increment times by one"
+  [graph node-ids]
+  (loop [acc graph
+         ids-curr node-ids]
+    (cond
+      (empty? ids-curr) acc
+      :else (recur (inc-time acc (first ids-curr))
+                   (rest ids-curr)))))
 
 
 ;;;
