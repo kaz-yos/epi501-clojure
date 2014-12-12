@@ -266,7 +266,7 @@
      (empty? alter-ids) '() ; empty seq of seqs
      :else              (map edge alter-ids))))
 
-;; function to extract unique undirected edges from a population
+;; Function to extract unique undirected edges from a population
 ;; map vector -> seq set
 (defn unique-undirected-edge-set [graph]
   (->> graph
@@ -276,7 +276,7 @@
        (map sort, )
        (set, )))
 
-;; function to extract unique directed edges from a population
+;; Function to extract unique directed edges from a population
 ;; map vector -> seq set
 (defn unique-directed-edge-set [graph]
   (->> graph
@@ -285,6 +285,23 @@
        (reduce concat, )
        ;; No need for sorting
        (set, )))
+
+;; Function to check states of nodes
+(defn states
+  "Function to check states of nodes"
+  [graph]
+  (->> graph
+    (vals, )
+    (map :state, )))
+
+;; Function to count each states
+(defn state-freq
+  "Function to count each states"
+  [graph]
+  (->> graph
+    (states, )
+    (frequencies, )
+    (merge-with + {:S 0, :E 0, :I 0, :R 0, :H 0, :D1 0, :D2 0}, )))
 
 
 ;;;
