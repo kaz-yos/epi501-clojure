@@ -8,13 +8,17 @@
 
 ;;;
 ;;; Data representation
-;; See the test file
+
+;; Node is a record
+;; Define a record (Define a class with named fields)
+(defrecord Node [id neighbors state time])
+
+;; Graph is a {id node} map
+
 
 ;;;
 ;;; Data creation functions
 
-;; Define a record (Define a class with named fields)
-(defrecord Node [id neighbors state time])
 
 ;; Function to return a new node with initial status
 (defn new-node
@@ -103,6 +107,10 @@
       (empty? nodes-curr) acc
       :else (recur (add-node acc (first nodes-curr) :undirectional)
                    (rest nodes-curr))))))
+
+
+;;;
+;;; Node update functions
 
 ;; Set state
 (defn set-state [graph node-id state]
@@ -228,6 +236,21 @@
        (reduce concat, )
        ;; No need for sorting
        (set, )))
+
+
+;;;
+;;; Time lapse functions
+
+
+;; Function to change status stochastically
+
+;; Function to try to infect people in target-ids
+(defn transmit [graph target-ids]
+  ;; use function to update state
+  :out
+  )
+
+
 
 ;;;
 ;;; Main function for entry
