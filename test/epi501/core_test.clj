@@ -2,7 +2,7 @@
   (:require [clojure.test :refer :all]
             [epi501.core :refer :all]))
 
-;;; 
+;;;
 ;;; Data representation and definition
 ;; A node is a map with an id and a neighbors vector
 (def node1 (new-node 1 [2 3] :I  2))
@@ -14,7 +14,7 @@
 (def graph1 (new-graph [node1 node2 node3 node4 node5]))
 
 
-;;; 
+;;;
 ;;; Data creation
 (deftest new-graph-test
   (testing "new graph creation"
@@ -46,7 +46,7 @@
            {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}}))
     (is (= (add-node (new-graph (new-nodes [1])) (new-node 2))
            {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
-            2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}}))    
+            2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}}))
     (is (= (add-node (new-graph (new-nodes [1])) (new-node 2 [1]))
            {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
             2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}}))
@@ -124,7 +124,16 @@
     (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [0 1 1 2 3]))
            (reset-time (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
                                              [:S :R :E :S :D2] [2 1 1 2 3]))
-                       1)))))
+                       1)))
+    ;; Mutliple nodes
+    (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:I :I :I :I :I] [2 1 1 2 3]))
+           (set-fields (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                             [:S :R :E :S :D2] [2 1 1 2 3]))
+                       [1 2 3 4 5] :state :I)))
+    (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:I :I :I :I :I] [2 1 1 2 3]))
+           (set-states (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                             [:S :R :E :S :D2] [2 1 1 2 3]))
+                       [1 2 3 4 5] :I)))))
 
 
 ;;;
@@ -151,7 +160,7 @@
 (deftest random-choice-test
   (testing "Test random choice"
     (is (= (random-choice [1]) 1))
-    (is (contains? [1 2 3] (random-choice [1 2 3])))))
+    (is (contains? #{1 2 3} (random-choice [1 2 3])))))
 
 (deftest random-m-unique-elements-test
   (testing "Test random m unique elements"
@@ -178,8 +187,8 @@
     ))
 
 
-;;; 
-;;; Node-level information extraction 
+;;;
+;;; Node-level information extraction
 (deftest id-test
   (testing "id extration"
     (is (= (:id node1) 1))

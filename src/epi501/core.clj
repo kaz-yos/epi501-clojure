@@ -118,9 +118,24 @@
   [graph node-id field new-field-val]  
   (assoc-in graph [node-id field] new-field-val))
 
+;; Function to set the same fields for multiple nodes
+(defn set-fields
+  "Function to set the same fields for multiple nodes"
+  [graph node-ids field new-field-val]
+  (loop [acc graph
+         ids-curr node-ids]
+    (cond
+      (empty? ids-curr) acc
+      :else (recur (set-field acc (first ids-curr) field new-field-val)
+                   (rest ids-curr)))))
+
 ;; Function to set state
 ;; record map, num, keyword -> map
 (def set-state #(set-field %1 %2 :state %3))
+
+;; Function to set state for multiple nodes
+(def set-states #(set-fields %1 %2 :state %3))
+
 
 ;; Function to set time to an arbitrary time
 ;; record map, num, num -> map
