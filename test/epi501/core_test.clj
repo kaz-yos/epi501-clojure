@@ -153,8 +153,10 @@
     (is (= (random-choice [1]) 1))
     (is (contains? #{1 2 3} (random-choice [1 2 3])))
     ;; only node 1 has positive weight
-    (is (= 1 (random-weighted-choice (new-graph (new-nodes [1 2 3] [[2 3][][]])))))
-    (is (= 3 (random-weighted-choice (new-graph (new-nodes [3 2 1] [[2 3][][]])))))))
+    (is (= [1 1 1 1 1] (take 5 (random-weighted-id-seq (new-graph (new-nodes [1 2 3] [[2 3][][]]))))))
+    (is (= [3 3 3 3 3] (take 5 (random-weighted-id-seq (new-graph (new-nodes [3 2 1] [[2 3][][]]))))))
+    (is (= {3 2494, 1 4964, 2 2542}
+           (frequencies (take 10000 (random-weighted-id-seq (new-graph (new-nodes [1 2 3] [[2 3][1][1]])) 1)))))))
 
 
 

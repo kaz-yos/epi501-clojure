@@ -203,19 +203,16 @@
       (into {}, ))))
 
 ;; Function to do weighted sampling of nodes based on degrees
-(defn random-weighted-choice
+(defn random-weighted-id-seq
   "Function to do weighted sampling of nodes based on degrees"
-  ([graph] (random-weighted-choice graph (rand)))
+  ([graph] (random-weighted-id-seq graph (rand)))
   ([graph seed]
    (->> (bigml.sampling.simple/sample (map :id (vals graph))
                                       :weigh (degrees-map graph)
                                       :replace true
                                       :seed seed)
-     (first, ))))
-
-(degrees-map (new-graph (new-nodes [1 2 3] [[2 3][][]])))
-
-(random-weighted-choice (new-graph (new-nodes [1 2 3] [[2 3][][]])))
+     ;; (first, )
+     )))
 
 
 ;;;
@@ -292,6 +289,7 @@
               id-curr m]
          (cond
            (>= (count acc) n) acc
+           ;; Pick nodes to be neighbors based on weighted sampling
            :else (let [neighbors (random-m-unique-elements (weighted-id-seq acc) m)]
                    (recur (add-node-fun acc (new-node id-curr neighbors)) (inc id-curr)))))))))
 
