@@ -543,13 +543,15 @@
          (empty? candidate-nodes-curr) acc
          ;; Otherwise loop over current node's neighbors to determine transmission
          :else (let [node-being-assessed (first candidate-nodes-curr)
-                     neighbor-states (states graph (:neighbors node-being-assessed))
-                     transmission-probs (bigml.sampling.simple/sample
-                                         (transmission-per-contact neighbor-states)
-                                         :seed seed-curr)
+                     neighbor-states     (states graph (:neighbors node-being-assessed))
+                     transmission-probs  (->> neighbor-states
+                                           (map transmission-per-contact, ))
+                     shuffled-probs  (bigml.sampling.simple/sample
+                                      transmission-probs
+                                      :seed seed-curr)
                      ;; Inner loop over neighbors
                      transmission-status
-                     (loop [transmission-probs-curr (take maximum-n-of-contacts transmission-probs)
+                     (loop [transmission-probs-curr (take maximum-n-of-contacts shuffled-probs)
                             seed-curr-inner seed-curr]
                        (cond
                          ;; If interation is over, return false with current seed
@@ -561,7 +563,14 @@
                          {:transmit? true :seed seed-curr-inner}                         
                          ;; Otherwise keep trying to infect
                          :else (recur (rest transmission-probs-curr)
-                                      (new-seed seed-curr-inner))))]
+                                      (new-seed seed-curr-inner))))] ; Inner loop is within let
+                 
+                 ;;
+                 ;; (println "node-being-assessed" node-being-assessed)
+                 ;; (println "neighbor-states" neighbor-states)
+                 ;; (println "shuffled-probs" shuffled-probs)
+                 ;;
+                 
                  ;; Outer loop return value
                  (if (:transmit? transmission-status)
                    ;; Transmission Yes
