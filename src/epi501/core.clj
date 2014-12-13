@@ -1,3 +1,5 @@
+;;; EPI501 Dynamics of Infectious Diseases Final Project
+;;; Author Kazuki Yoshida
 (ns epi501.core
   (:gen-class
    ;; https://github.com/bigmlcom/sampling
@@ -115,15 +117,24 @@
 ;;;
 ;;; Node update functions
 
+;; Generic version to set a new field value for a node object
+(defn set-field-node
+  "Function to set a specified field of a node object to a new value
+
+  This function takes a node object and returns an updated node object."
+  [node field new-field-val]
+  (assoc-in node [field] new-field-val))
+
 ;; Generic version to set a new field value
 (defn set-field
-  "Function to set a specified field to a new value"
+  "Function to set a specified field of a node to a new value in a graph"
   [graph node-id field new-field-val]
-  (assoc-in graph [node-id field] new-field-val))
+  (let [old-node (get-in graph [node-id])]
+    (assoc-in graph [node-id] (set-field-node old-node field new-field-val))))
 
 ;; Function to set the same fields for multiple nodes
 (defn set-fields
-  "Function to set the same fields for multiple nodes"
+  "Function to set the same fields for multiple nodes in a graph"
   [graph node-ids field new-field-val]
   (loop [acc graph
          ids-curr node-ids]
@@ -132,36 +143,42 @@
       :else (recur (set-field acc (first ids-curr) field new-field-val)
                    (rest ids-curr)))))
 
-;; Function to set state
+
+;; Function to set state of a node object
+(def set-state-node #(set-field-node %1 :state %2))
+;; Function to set state of a node in a graph
 ;; record map, num, keyword -> map
 (def set-state #(set-field %1 %2 :state %3))
-
-;; Function to set state for multiple nodes
+;; Function to set state for multiple nodes in a graph
 (def set-states #(set-fields %1 %2 :state %3))
 
 
-;; Function to set time to an arbitrary time
+;; Function to set time of a node object to an arbitrary time
+(def set-time-node #(set-field-node %1 :time %2))
+;; Function to set time of a node in a graph to an arbitrary time
 ;; record map, num, num -> map
 (def set-time #(set-field %1 %2 :time %3))
-
 ;; Function to set times to an arbitrary time
 (def set-times #(set-fields %1 %2 :time %3))
 
-
-;; Function to reset time to zero
+;; Function to reset time to zero (node)
+(def reset-time-node #(set-time-node %1 0))
+;; Function to reset time to zero (node in graph)
 (def reset-time #(set-time %1 %2 0))
-
-;; Function to reset times to zero
+;; Function to reset times to zero (nodes in graph)
 (def reset-times #(set-times %1 %2 0))
 
-
-;; Function to increment time by one
+;; Function to increment time by one (node object)
+(defn inc-time-node
+  "Function to increment time by one"
+  [node]
+  (update-in node [:time] inc))
+;; Function to increment time by one (node in graph)
 (defn inc-time
   "Function to increment time by one"
   [graph node-id]
   (update-in graph [node-id :time] inc))
-
-;; Function to increment times by one
+;; Function to increment times by one (nodes in graph)
 (defn inc-times
   "Function to increment times by one"
   [graph node-ids]
@@ -296,7 +313,7 @@
      (throw (Throwable. "m is used as the number of seed nodes; must be m <= n"))
      ;; valid
      (let [init-graph (seed-graph-for-ba m)
-           ;; Use directional or undirectional add-node function 
+           ;; Use directional or undirectional add-node function
            add-node-fun (if (= undirectional :undirectional)
                           #(add-node %1 %2 :undirectional)
                           #(add-node %1 %2))]
@@ -313,7 +330,7 @@
                                   ;; Number of unique elements to pick from it
                                   m
                                   ;; Seed if provided or create one on the fly
-                                  (if seed seed (rand)))] 
+                                  (if seed seed (rand)))]
                    (recur (add-node-fun acc (new-node id-curr neighbors)) (inc id-curr)))))))))
 
 ;;;
@@ -356,13 +373,18 @@
     ;; No need for sorting
     (set, )))
 
-;; Function to check states of nodes
+;; Function to check states of nodes in a graph
 (defn states
-  "Function to check states of nodes"
-  [graph]
-  (->> graph
-    (vals, )
-    (map :state, )))
+  "Function to check states of nodes in a graph
+
+  Give node IDs if desired"
+  ([graph] (->> graph
+             (vals, )
+             (map :state, )))
+  ;;
+  ;; If keys are specified, only get states for the selected ones
+  ([graph keys] (->> (select-keys graph keys)
+                  (states, ))))
 
 ;; Map of having 0 for all states
 (def all-states-zero {:S 0, :E 0, :I 0, :R 0, :H 0, :D1 0, :D2 0})
@@ -376,32 +398,197 @@
     (frequencies, )
     (merge-with + all-states-zero, )))
 
+;; Function to check a node's neighbors states
+(defn neighbor-states
+  "Function to check a node's neighbors states"
+  [node graph]
+  (let [neighbor-ids (:neighbors node)]
+    (states graph neighbor-ids)))
+
 
 ;;;
-;;; Time lapse functions
+;;; Transition parameters
+;; Mostly from Gomes et al, PLOS currents outbreaks Sep 2014
 
-;; Transition parameters
+;; I->H
+(def mean-time-to-hospitalization 5)
+
+;; I->Dx
+(def mean-time-to-death 10)
+
+;; I->R
+(def mean-time-to-recovery 10)
+(def p-I->R  (/ 1 mean-time-to-recovery))
+
+
 (def p-I->R  (* (/ 1 14) 0.65 ))
 (def p-I->D1 (* (/ 1 14) 0.35 0.5))
 (def p-I->D2 (* (/ 1 14) 0.35 0.5))
 
-;; Function for I -> X stochastic transition
-(defn I->X
-  "Function for I -> X stochastic transition for a node"
-  [graph node-id]
-  (cond
-    (< (rand) p-I->R) (set-state graph node-id :R)
-    :else graph))
+;; Define transition probabilities per unit time
+
+;; Transition from susceptible state
+;; No automatic transition into E/I
+(def p-S->X {:S 1, :E 0, :I 0, :R 0})
+;; Transition from exposed (infected & latent period)
+(def p-E->X {:E 6/7, :I 1/7, :S 0, :R 0})
+;; Transition from infectious state
+(def p-I->X {:I 9/10, :R 1/10, :D1 0, :D2 0})
+;; Transition from hospitalized (also infectious) state
+(def p-H->X {:H 9/10, :R 1/10, :D1 0, :D2 0})
+;; Recovered state is assumed to be an absorbing state
+(def p-R->X {:R 1})
+;; Funeral/unsafe burial leads to safe burial over time
+(def p-D1->X {:D2 1/2})
+;; Safe burial is assumed to be an absorbing state
+(def p-D2->X {:D2 1})
+
+;; Define as a look up map of transition probability maps
+;; Use A status to look up an appropriate transition probability map
+;; # This map is directly referred to from the next-state function #
+(def p-A->X-map {:S p-S->X, :E p-E->X, :I p-I->X, :H p-H->X, :R p-R->X, :D1 p-D1->X, :D2 p-D2->X})
+
+
+;;;
+;;; Time lapse functions
+
+;; Function to pick X for A->X stochastic transition based on A state value
+(defn next-state
+  "Function to pick X for A->X stochastic transition based on A state value"
+  ([node] (next-state node (rand)))
+  ([node seed]
+   ;; Pick transition probability map based on current state
+   (let [p-A->X (p-A->X-map (:state node))]
+     (->> (bigml.sampling.simple/sample
+           ;; Choose from these
+           (keys p-A->X)
+           ;; Based on these weights
+           :weigh p-A->X
+           ;; With replacement
+           :replace true
+           ;; With a seed
+           :seed seed)
+       ;; Return only one element
+       (first, )))))
+
+;; Function to simulate time lapse for a node
+(defn one-step-ahead-node
+  "Function to simulate time lapse for a node
+
+  Given a node and the transition function simulate a one step time lapse"
+  ([node] (one-step-ahead-node node (rand))) ; Create a random seed if not provided
+  ([node seed]
+   ;; Choose the next state based on the current node state
+   (let [next-state-of-node (next-state node seed)]
+     (set-state-node node next-state-of-node))))
 
 ;; Function to simulate time lapse
-(defn time-lapse
-  "Function to simulate time lapse"
-  [graph]
-  :time-lapsed-graph)
+(defn unit-time-lapse
+  "Function to simulate lapse of one unit time
 
-;; Function to try to infect people in target-ids
+  This funcion takes a graph, get a seq of nodes, update each
+  node in a reproducible manner. Run new-graph on the resulting
+  seq of nodes to complete a time step."
+  ([graph] (unit-time-lapse graph (rand)))
+  ([graph seed]
+   (let [nodes (vals graph)]
+     ;; Loop over all nodes
+     (loop [acc        []
+            nodes-curr nodes
+            seed-curr  seed]
+       (cond
+         (empty? nodes-curr) acc
+         :else (recur (conj acc (one-step-ahead-node (first nodes-curr) seed-curr))
+                      (rest nodes-curr)
+                      ;; Reproducible sequence of seeds determined by the initial seed
+                      (new-seed seed-curr)))))))
+
+;; Set of states that are susceptible
+(def susceptible-states #{:S})
+;; Function to find candidates of transmission
+(defn susceptible-nodes
+  "Function to find candidates of transmission"
+  [graph]
+  (->> graph
+    (vals, )
+    (filter #(contains? susceptible-states (:state %)), )))
+
+;; Set of states that are infectious
+(def infectious-states #{:I :H :D1})
+;; Transmission probability of each infectious state upon 1 unit contact
+;; Need to define 0 for non-infectious states because S individuals need to
+;; meet people including infectious and non-infectious ones
+(def transmission-per-contact {:S 0, :E 0, :I 0.5, :H 0.5, :R 0.5, :D1 0.5, :D2 0})
+;; Define the maximum number of people to contact per unit time
+(def maximum-n-of-contacts 10)
+
+;; Function to pick transmission targets based on connections and probabilities
+(defn target-ids
+  "Function to pick transmission targets stochastically
+
+  The outer loop iterate over candidate susceptible nodes.
+  Each candidate will meet with its neighbors (inner loop)
+  until there are no more neighbors, maximum defined in
+  maximum-n-of-contacts is reached, or infected."
+  ([graph] (target-ids graph (rand)))
+  ([graph seed]
+   ;; Pick nodes that are in susceptible states
+   (let [candidate-nodes (susceptible-nodes graph)]
+     ;;
+     ;; Outer loop over candidate nodes
+     (loop [acc [] ; vector of IDs of nodes destined for transmission
+            candidate-nodes-curr candidate-nodes
+            seed-curr seed]
+       (cond
+         ;; After iterating over all candidate nodes,
+         ;; Return IDs for nodes destined for transmission
+         (empty? candidate-nodes-curr) acc
+         ;; Otherwise loop over current node's neighbors to determine transmission
+         :else (let [node-being-assessed (first candidate-nodes-curr)
+                     neighbor-states     (states graph (:neighbors node-being-assessed))
+                     transmission-probs  (->> neighbor-states
+                                           (map transmission-per-contact, ))
+                     shuffled-probs  (bigml.sampling.simple/sample
+                                      transmission-probs
+                                      :seed seed-curr)
+                     ;; Inner loop over neighbors
+                     transmission-status
+                     (loop [transmission-probs-curr (take maximum-n-of-contacts shuffled-probs)
+                            seed-curr-inner seed-curr]
+                       (cond
+                         ;; If interation is over, return false with current seed
+                         (empty? transmission-probs-curr) {:transmit? false, :seed seed-curr-inner}
+                         ;; If transmission occurs, return true with current seed
+                         ;; Uniform [0,1) in Java 7
+                         ;; http://docs.oracle.com/javase/7/docs/api/java/util/Random.html
+                         (< (.nextDouble (java.util.Random. seed-curr-inner)) (first transmission-probs-curr))
+                         {:transmit? true :seed seed-curr-inner}                         
+                         ;; Otherwise keep trying to infect
+                         :else (recur (rest transmission-probs-curr)
+                                      (new-seed seed-curr-inner))))] ; Inner loop is within let
+                 
+                 ;;
+                 ;; (println "node-being-assessed" node-being-assessed)
+                 ;; (println "neighbor-states" neighbor-states)
+                 ;; (println "shuffled-probs" shuffled-probs)
+                 ;;
+                 
+                 ;; Outer loop return value
+                 (if (:transmit? transmission-status)
+                   ;; Transmission Yes
+                   (recur (conj acc (:id node-being-assessed))
+                          (rest candidate-nodes-curr)
+                          (:seed transmission-status))
+                   ;; Transmission No
+                   (recur acc
+                          (rest candidate-nodes-curr)
+                          (:seed transmission-status)))))))))
+
+;; Function to infect people in target-ids (deterministic)
 (defn transmit
-  "Function to try to infect people in target-ids"
+  "Function to infect people in target-ids
+
+  This function is determinitstic."
   [graph target-ids]
   ;; use function to update state
   :out)
