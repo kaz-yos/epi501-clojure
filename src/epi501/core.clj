@@ -398,6 +398,13 @@
     (frequencies, )
     (merge-with + all-states-zero, )))
 
+;; Function to check a node's neighbors states
+(defn neighbor-states
+  "Function to check a node's neighbors states"
+  [node graph]
+  (let [neighbor-ids (:neighbors node)]
+    (states graph neighbor-ids)))
+
 
 ;;;
 ;;; Transition parameters
@@ -421,7 +428,8 @@
 ;; Define transition probabilities per unit time
 
 ;; Transition from susceptible state
-(def p-S->X {:S 1, :E 0, :R 0})
+;; No automatic transition into E/I
+(def p-S->X {:S 1, :E 0, :I 0, :R 0})
 ;; Transition from exposed (infected & latent period)
 (def p-E->X {:E 6/7, :I 1/7, :S 0, :R 0})
 ;; Transition from infectious state
@@ -494,6 +502,39 @@
                       (rest nodes-curr)
                       ;; Reproducible sequence of seeds determined by the initial seed
                       (new-seed seed-curr)))))))
+
+;; Set of states that are susceptible
+(def susceptible-states #{:S})
+;; Function to find candidates of transmission
+(defn susceptible-nodes
+  "Function to find candidates of transmission"
+  [graph]
+  (->> graph
+    (vals, )
+    (filter #(contains? susceptible-states (:state %)), )))
+
+;; Set of states that are infectious
+(def infectious-states #{:I :H :D1})
+;; Transmission probability of each infectious state upon 1 unit contact
+(def transmission-per-contact {:I 0.5, :H 0.5, :D1 0.5})
+;; Define the maximum number of people to contact per unit time
+(def maximum-n-of-contacts 10)
+
+;; Function to pick transmission targets based on connections and probabilities
+(defn target-ids
+  "Function to pick transmission targets based on connections 
+  and probabilities"
+  ([graph] (target-ids graph (rand)))
+  ([graph seed]
+   ;; Pick nodes that are in susceptible states
+   (let [candidate-nodes (susceptible-nodes graph)
+         candidate-node-ids (map :id candidate-nodes)
+         candidate-node-neighbor-ids-seq (map :neighbors candidate-nodes)
+         candidate-node-neighbor-states (map #(states graph %) candidate-node-neighbor-ids-seq)]
+     
+     (print candidate-node-neighbor-states)
+     candidate-node-ids
+   )))
 
 ;; Function to try to infect people in target-ids
 (defn transmit

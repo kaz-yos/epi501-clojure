@@ -354,3 +354,26 @@
            (map :state (unit-time-lapse (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 100))))
     (is (= '(:R :I :R :R :I :I :I :I :I :R :I :I :I :I :I :I :I :I :I :I)
            (map :state (unit-time-lapse (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 140))))))
+
+
+;;; Transmission processes
+
+(deftest susceptible-nodes-test
+  (testing "Function to pick susceptible nodes"
+    (is (= (range 10)
+           (sort (map :id (susceptible-nodes (new-graph (new-nodes (range 10))))))))
+
+    (is (= '(0 4 5 6 7 8 9)
+           (sort (map :id (susceptible-nodes (set-states (new-graph (new-nodes (range 10))) [1 2 3] :I))))))
+
+    ))
+
+(deftest target-ids-test
+  (testing "Function to pick IDs of susceptible nodes that are destined for transmission"
+    (is (= (range 10)
+           (sort (target-ids (new-graph (new-nodes (range 10)))))))
+
+    (is (= '(0 4 5 6 7 8 9)
+           (sort (target-ids (set-states (new-graph (new-nodes (range 10))) [1 2 3] :I)))))
+
+    ))
