@@ -394,10 +394,8 @@
     (merge-with + all-states-zero, )))
 
 
-;;;
-;;; Time lapse functions
-
-;; Transition parameters
+;;; 
+;;; Transition parameters
 ;; Mostly from Gomes et al, PLOS currents outbreaks Sep 2014
 
 ;; I->H
@@ -416,9 +414,25 @@
 (def p-I->D2 (* (/ 1 14) 0.35 0.5))
 
 ;; Define transition probabilities per unit time
-(def p-I->X {:I 9/10, :R 1/10 :D1 0 :D2 0})
-(def p-H->X {:H 9/10, :R 1/10 })
 
+;; Transition from susceptible state
+(def p-S->X {:S 1, :E 0, :R 0})
+;; Transition from exposed (infected & latent period)
+(def p-E->X {:E 6/7, :I 1/7, :S 0, :R 0})
+;; Transition from infectious state
+(def p-I->X {:I 9/10, :R 1/10, :D1 0, :D2 0})
+;; Transition from hospitalized (also infectious) state
+(def p-H->X {:H 9/10, :R 1/10, :D1 0, :D2 0})
+;; Recovered state is assumed to be an absorbing state
+(def p-R->X {:R 1})
+;; Funeral/unsafe burial leads to safe burial over time
+(def p-D1->X {:D2 1/2})
+;; Safe burial is assumed to be an absorbing state
+(def p-D2->X {:D2 1})
+
+
+;;;
+;;; Time lapse functions
 
 ;; Function to pick X for I->X stochastic transition
 (defn I->X
