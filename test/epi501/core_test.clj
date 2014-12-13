@@ -116,7 +116,7 @@
            (reset-time-node (new-node 1 [2 3] :S 2))))
     (is (= (new-node 1 [2 3] :S 3)
            (inc-time-node (new-node 1 [2 3] :S 2))))
-    
+
     ;; A node in a graph
     (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [2 1 1 2 3]))
            (set-field (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
@@ -138,7 +138,7 @@
            (reset-time (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
                                              [:S :R :E :S :D2] [2 1 1 2 3]))
                        1)))
-    
+
     ;; Mutliple nodes in a graph
     (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:I :I :I :I :I] [2 1 1 2 3]))
            (set-fields (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
@@ -319,7 +319,8 @@
 
 (deftest states-test
   (testing "Graph's state checker"
-    (is (= '(:I :R :E :S :D2) (states graph1)))
+    (is (= (sort '(:I :R :E :S :D2)) (sort (states graph1))))
+    (is (= (sort '(:I :R)) (sort (states graph1 [1 2]))))
     (is (= {:S 1, :E 1, :I 1, :R 1, :H 0, :D1 0, :D2 1} (state-freq graph1)))))
 
 
@@ -334,15 +335,49 @@
 ;;; Non-transmission processes
 
 ;; Simple model
-(deftest I->R-test
-  (testing "I->R transition"
-    (let [graph-all-I (set-states ba-graph (range 0 100) :I)]
-      ;; Using all-I graph
-      (is (= :I ((func-map (:state (new-node 1 [] :I))) map-I->X (new-node 1 [] :I) 100)))
-      (is (= :R ((func-map (:state (new-node 1 [] :I))) map-I->X (new-node 1 [] :I) 140)))      
-      )))
+(deftest next-state-test
+  (testing "next-state picker for transition"
+    ;; Node-level tests
+    (is (= :I (next-state (new-node 1 [] :I) 100)))
+    (is (= :R (next-state (new-node 1 [] :I) 140)))))
 
-;; 
-(deftest I->X-transition-all
-  (testing "Transition from I state"
-    (is true)))
+(deftest one-step-ahead-node-test
+  (testing "Update node based on transition probailities"
+    (is (= (new-node 1 [] :I)
+           (one-step-ahead-node (new-node 1 [] :I) 100)))
+    (is (= (new-node 1 [] :R)
+           (one-step-ahead-node (new-node 1 [] :I) 140)))))
+
+(deftest unit-time-lapse-test
+  (testing "Time lapse function to conduct stochastic transition for each node"
+    (is (= '(:I :I :R :I :I :I :I :I :I :I :I :I :I :I :I :R :I :I :I :I)
+           (map :state (unit-time-lapse (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 100))))
+    (is (= '(:R :I :R :R :I :I :I :I :I :R :I :I :I :I :I :I :I :I :I :I)
+           (map :state (unit-time-lapse (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 140))))))
+
+
+;;; Transmission processes
+
+(deftest susceptible-nodes-test
+  (testing "Function to pick susceptible nodes"
+    (is (= (range 10)
+           (sort (map :id (susceptible-nodes (new-graph (new-nodes (range 10))))))))
+
+    (is (= '(0 4 5 6 7 8 9)
+           (sort (map :id (susceptible-nodes (set-states (new-graph (new-nodes (range 10))) [1 2 3] :I))))))
+
+    ))
+
+(deftest target-ids-test
+  (testing "Function to pick IDs of susceptible nodes that are destined for transmission"
+    ;; Transmission cannot occur if there are only S nodes (seed intentionally not set)
+    (is (= []
+           (target-ids (seed-graph-for-ba 10))))
+    ;; Transmission cannot occur if no connection (seed intentionally not set)
+    (is (= []
+           (target-ids (set-states (new-graph (new-nodes (range 100))) (range 1 100) :I))))
+
+    ;; This one should be infected most of the time (seed intentionally not set)
+    (is (= [0]
+           (target-ids (set-states (seed-graph-for-ba 100) (range 1 100) :I))))
+    ))
