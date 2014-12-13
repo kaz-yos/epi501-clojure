@@ -1,9 +1,10 @@
 (ns epi501.core
-  ;; (:require (bigml.sampling [simple :as simple]
-  ;;                           [reservoir :as reservoir]
-  ;;                           [stream :as stream])
-  ;;           (bigml.sampling.test [stream :as stream-test]))
-  (:gen-class))
+  (:gen-class
+   ;; https://github.com/bigmlcom/sampling
+   :require (bigml.sampling [simple :as simple]
+                            [reservoir :as reservoir]
+                            [stream :as stream])
+            (bigml.sampling.test [stream :as stream-test])))
 
 
 ;;;
