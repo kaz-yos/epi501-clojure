@@ -296,7 +296,7 @@
      (throw (Throwable. "m is used as the number of seed nodes; must be m <= n"))
      ;; valid
      (let [init-graph (seed-graph-for-ba m)
-           ;; Use directional or undirectional add-node function 
+           ;; Use directional or undirectional add-node function
            add-node-fun (if (= undirectional :undirectional)
                           #(add-node %1 %2 :undirectional)
                           #(add-node %1 %2))]
@@ -313,7 +313,7 @@
                                   ;; Number of unique elements to pick from it
                                   m
                                   ;; Seed if provided or create one on the fly
-                                  (if seed seed (rand)))] 
+                                  (if seed seed (rand)))]
                    (recur (add-node-fun acc (new-node id-curr neighbors)) (inc id-curr)))))))))
 
 ;;;
@@ -381,17 +381,55 @@
 ;;; Time lapse functions
 
 ;; Transition parameters
+;; Mostly from Gomes et al, PLOS currents outbreaks Sep 2014
+
+;; I->H
+(def mean-time-to-hospitalization 5)
+
+;; I->Dx
+(def mean-time-to-death 10)
+
+;; I->R
+(def mean-time-to-recovery 10)
+(def p-I->R  (/ 1 mean-time-to-recovery))
+
+
 (def p-I->R  (* (/ 1 14) 0.65 ))
 (def p-I->D1 (* (/ 1 14) 0.35 0.5))
 (def p-I->D2 (* (/ 1 14) 0.35 0.5))
 
-;; Function for I -> X stochastic transition
+(def map-I->X {:I 9/10, :R 1/10})
+
+;; Function to pick X for I->X stochastic transition
 (defn I->X
-  "Function for I -> X stochastic transition for a node"
-  [graph node-id]
-  (cond
-    (< (rand) p-I->R) (set-state graph node-id :R)
-    :else graph))
+  "Function to pick X for I->X stochastic transition"
+  ([map-I->X node] (I->X map-I->X node (rand)))
+  ([map-I->X node seed]
+   (->> (bigml.sampling.simple/sample
+         ;; Choose from these
+         (keys map-I->X)
+         ;; Based on these weights
+         :weigh map-I->X
+         ;; With replacement
+         :replace true
+         ;; With a seed
+         :seed seed)
+     ;; Return only one element
+     (first, ))))
+
+;; Function map
+;; Map next-state-picking function based on current state
+(def func-map {:S nil, :E nil, :I I->X, :R nil, :H nil, :D1 nil, :D2 nil})
+
+;; Function to simulate time lapse for a node
+(defn one-step-ahead-node
+  "Function to simulate time lapse for a node
+  Given a node and transition function map, simulate a one step time lapse"
+  ([func-map node] (one-step-ahead-node node func-map (rand)))
+  ([func-map node seed]
+   ;; Choose the right transition function based on current node state
+   (let [func-for-state (func-map (:state node))]
+     (func-for-state node seed))))
 
 ;; Function to simulate time lapse
 (defn time-lapse

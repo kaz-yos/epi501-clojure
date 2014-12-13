@@ -313,5 +313,22 @@
 (def ba-graph
   (-> (barabasi-albert-graph 3 100 :undirectional 20141212) ; This one is checked against hard-coded one
     ;; Infect node 71
-    (set-states [(random-choice (range 100) 20141213)] :I)
-    ))
+    (set-states [(random-choice (range 100) 20141213)] :I)))
+
+
+
+;;; Non-transmission processes
+
+;; Simple model
+(deftest I->R-test
+  (testing "I->R transition"
+    (let [graph-all-I (set-states ba-graph (range 0 100) :I)]
+      ;; Using all-I graph
+      (is (= :I ((func-map (:state (new-node 1 [] :I))) map-I->X (new-node 1 [] :I) 100)))
+      (is (= :R ((func-map (:state (new-node 1 [] :I))) map-I->X (new-node 1 [] :I) 140)))      
+      )))
+
+;; 
+(deftest I->X-transition-all
+  (testing "Transition from I state"
+    (is true)))
