@@ -413,18 +413,21 @@
 (def p-I->D1 (* (/ 1 14) 0.35 0.5))
 (def p-I->D2 (* (/ 1 14) 0.35 0.5))
 
-(def map-I->X {:I 9/10, :R 1/10})
+;; Define transition probabilities per unit time
+(def p-I->X {:I 9/10, :R 1/10 :D1 0 :D2 0})
+(def p-H->X {:H 9/10, :R 1/10 })
+
 
 ;; Function to pick X for I->X stochastic transition
 (defn I->X
   "Function to pick X for I->X stochastic transition"
-  ([map-I->X node] (I->X map-I->X node (rand)))
-  ([map-I->X node seed]
+  ([p-I->X node] (I->X p-I->X node (rand)))
+  ([p-I->X node seed]
    (->> (bigml.sampling.simple/sample
          ;; Choose from these
-         (keys map-I->X)
+         (keys p-I->X)
          ;; Based on these weights
-         :weigh map-I->X
+         :weigh p-I->X
          ;; With replacement
          :replace true
          ;; With a seed

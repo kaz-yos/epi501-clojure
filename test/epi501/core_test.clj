@@ -338,8 +338,8 @@
   (testing "I->R transition"
     (let [graph-all-I (set-states ba-graph (range 0 100) :I)]
       ;; Using all-I graph
-      (is (= :I ((func-map (:state (new-node 1 [] :I))) map-I->X (new-node 1 [] :I) 100)))
-      (is (= :R ((func-map (:state (new-node 1 [] :I))) map-I->X (new-node 1 [] :I) 140)))      
+      (is (= :I ((func-map (:state (new-node 1 [] :I))) p-I->X (new-node 1 [] :I) 100)))
+      (is (= :R ((func-map (:state (new-node 1 [] :I))) p-I->X (new-node 1 [] :I) 140)))      
       )))
 
 ;; 
