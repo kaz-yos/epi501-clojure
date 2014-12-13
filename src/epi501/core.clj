@@ -6,6 +6,9 @@
                             [stream :as stream])
             (bigml.sampling.test [stream :as stream-test])))
 
+(require '(bigml.sampling [simple :as simple]
+                            [reservoir :as reservoir]
+                            [stream :as stream]))
 
 ;;;
 ;;; Data representation
@@ -216,12 +219,6 @@
       (vals, )
       (map rep-id, )
       (flatten, ))))
-
-;; Function to pick one (wrapped for future improvement)
-(defn random-choice
-  "Randomly choose one element in a collection"
-  [coll]
-  (rand-nth coll))
 
 ;; Function to randomly pick n unique elements
 (defn random-m-unique-elements

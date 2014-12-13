@@ -143,12 +143,15 @@
                                             [:S :R :E :S :D2] [0 0 0 0 0]))
                       [1 2 3 4 5])))))
 
+
 ;;;
 ;;; Random graph generation functions
 (deftest random-number-tests
   (testing "Random graph generation functions"
     (is (= (first (bigml.sampling.simple/sample (range 0 100) :seed 20141212))
-           (random-choice (range 0 100) 20141212)))))
+           (random-choice (range 0 100) 20141212)))
+    (is (= (random-choice [1]) 1))
+    (is (contains? #{1 2 3} (random-choice [1 2 3])))))
 
 
 ;;;
@@ -171,11 +174,6 @@
     (is (= (weighted-id-seq (seed-graph-for-ba 2)) '(0 1)))
     (is (= (weighted-id-seq (seed-graph-for-ba 3)) '(0 0 1 1 2 2)))
     (is (= (weighted-id-seq (seed-graph-for-ba 4)) '(0 0 0 1 1 1 2 2 2 3 3 3)))))
-
-(deftest random-choice-test
-  (testing "Test random choice"
-    (is (= (random-choice [1]) 1))
-    (is (contains? #{1 2 3} (random-choice [1 2 3])))))
 
 (deftest random-m-unique-elements-test
   (testing "Test random m unique elements"
