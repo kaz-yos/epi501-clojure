@@ -143,6 +143,13 @@
                                             [:S :R :E :S :D2] [0 0 0 0 0]))
                       [1 2 3 4 5])))))
 
+;;;
+;;; Random graph generation functions
+(deftest random-number-tests
+  (testing "Random graph generation functions"
+    (is (= (first (bigml.sampling.simple/sample (range 0 100) :seed 20141212))
+           (random-choice (range 0 100) 20141212)))))
+
 
 ;;;
 ;;; Random graph creation
@@ -237,6 +244,10 @@
     (is (= (edges node4) [[4 3]]))
     (is (= (edges node5) []))))
 
+(deftest degrees-test
+  (testing "Obtain degrees"
+    (is (= 2 (degree (new-node 1 #{2 3})))
+        (= {1 2, 2 1, 3 1} (degrees-map (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]])))))))
 
 ;;; Population-level information extraction
 (deftest unique-undirected-edge-set-test
