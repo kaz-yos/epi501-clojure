@@ -334,15 +334,22 @@
 ;;; Non-transmission processes
 
 ;; Simple model
-(deftest I->R-test
-  (testing "I->R transition"
-    (let [graph-all-I (set-states ba-graph (range 0 100) :I)]
-      ;; Using all-I graph
-      (is (= :I ((func-map (:state (new-node 1 [] :I))) p-I->X (new-node 1 [] :I) 100)))
-      (is (= :R ((func-map (:state (new-node 1 [] :I))) p-I->X (new-node 1 [] :I) 140)))      
-      )))
+(deftest next-state-test
+  (testing "next-state picker for transition"
+    ;; Node-level tests
+    (is (= :I (next-state (new-node 1 [] :I) 100)))
+    (is (= :R (next-state (new-node 1 [] :I) 140)))))
 
-;; 
-(deftest I->X-transition-all
-  (testing "Transition from I state"
-    (is true)))
+(deftest one-step-ahead-node-test
+  (testing "Update node based on transition probailities"
+    (is (= (new-node 1 [] :I)
+           (one-step-ahead-node (new-node 1 [] :I) 100)))
+    (is (= (new-node 1 [] :R)
+           (one-step-ahead-node (new-node 1 [] :I) 140)))))
+
+(deftest time-lapse-test
+  (testing "Time lapse function to conduct stochastic transition for each node"
+    (is (= '(:I :I :R :I :I :I :I :I :I :I :I :I :I :I :I :R :I :I :I :I)
+           (map :state (time-lapse (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 100))))
+    (is (= '(:R :I :R :R :I :I :I :I :I :R :I :I :I :I :I :I :I :I :I :I)
+           (map :state (time-lapse (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 140))))))

@@ -430,46 +430,64 @@
 ;; Safe burial is assumed to be an absorbing state
 (def p-D2->X {:D2 1})
 
+;; Define as a look up map of transition probability maps
+;; Use A status to look up an appropriate transition probability map
+;; # This map is directly referred to from the next-state function #
+(def p-A->X-map {:S p-S->X, :E p-E->X, :I p-I->X, :H p-H->X, :R p-R->X, :D1 p-D1->X, :D2 p-D2->X})
+
 
 ;;;
 ;;; Time lapse functions
 
-;; Function to pick X for I->X stochastic transition
-(defn I->X
-  "Function to pick X for I->X stochastic transition"
-  ([p-I->X node] (I->X p-I->X node (rand)))
-  ([p-I->X node seed]
-   (->> (bigml.sampling.simple/sample
-         ;; Choose from these
-         (keys p-I->X)
-         ;; Based on these weights
-         :weigh p-I->X
-         ;; With replacement
-         :replace true
-         ;; With a seed
-         :seed seed)
-     ;; Return only one element
-     (first, ))))
-
-;; Function map
-;; Map next-state-picking function based on current state
-(def func-map {:S nil, :E nil, :I I->X, :R nil, :H nil, :D1 nil, :D2 nil})
+;; Function to pick X for A->X stochastic transition based on A state value
+(defn next-state
+  "Function to pick X for A->X stochastic transition based on A state value"
+  ([node] (next-state node (rand)))
+  ([node seed]
+   ;; Pick transition probability map based on current state
+   (let [p-A->X (p-A->X-map (:state node))]
+     (->> (bigml.sampling.simple/sample
+           ;; Choose from these
+           (keys p-A->X)
+           ;; Based on these weights
+           :weigh p-A->X
+           ;; With replacement
+           :replace true
+           ;; With a seed
+           :seed seed)
+       ;; Return only one element
+       (first, )))))
 
 ;; Function to simulate time lapse for a node
 (defn one-step-ahead-node
   "Function to simulate time lapse for a node
-  Given a node and transition function map, simulate a one step time lapse"
-  ([func-map node] (one-step-ahead-node node func-map (rand)))
-  ([func-map node seed]
-   ;; Choose the right transition function based on current node state
-   (let [func-for-state (func-map (:state node))]
-     (func-for-state node seed))))
+
+  Given a node and the transition function simulate a one step time lapse"
+  ([node] (one-step-ahead-node node (rand))) ; Create a random seed if not provided
+  ([node seed]
+   ;; Choose the next state based on the current node state
+   (let [next-state-of-node (next-state node seed)]
+     (set-state-node node next-state-of-node))))
 
 ;; Function to simulate time lapse
 (defn time-lapse
-  "Function to simulate time lapse"
-  [graph]
-  :time-lapsed-graph)
+  "Function to simulate time lapse
+
+  This funcion takes a graph, get a seq of nodes, update each
+  node in a reproducible manner."
+  ([graph] (time-lapse graph (rand)))
+  ([graph seed]
+   (let [nodes (vals graph)]
+     ;; Loop over all nodes
+     (loop [acc        []
+            nodes-curr nodes
+            seed-curr  seed]       
+       (cond
+         (empty? nodes-curr) acc
+         :else (recur (conj acc (one-step-ahead-node (first nodes-curr) seed-curr))
+                      (rest nodes-curr)
+                      ;; Reproducible sequence of seeds determined by the initial seed
+                      (new-seed seed-curr)))))))
 
 ;; Function to try to infect people in target-ids
 (defn transmit
