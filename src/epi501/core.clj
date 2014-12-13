@@ -185,6 +185,38 @@
   ([coll] (random-choice coll (rand)))
   ([coll seed] (first (bigml.sampling.simple/sample coll :seed seed))))
 
+;; Function to assess the degree of a node
+(defn degree
+  "Function to assess the degree of a node"
+  [node]
+  (count (:neighbors node)))
+
+;; Function to assess the degrees of all nodes in a graph
+(defn degrees-map
+  "Function to assess the degrees of all nodes in a graph
+
+  Returns a map of degrees mapped to ids"
+  [graph]
+  (let [id-degree-pair (fn [node] [(:id node) (degree node)])]
+    (->> (vals graph)
+      (map id-degree-pair, )
+      (into {}, ))))
+
+;; Function to do weighted sampling of nodes based on degrees
+(defn random-weighted-choice
+  "Function to do weighted sampling of nodes based on degrees"
+  ([graph] (random-weighted-choice graph (rand)))
+  ([graph seed]
+   (->> (bigml.sampling.simple/sample (map :id (vals graph))
+                                      :weigh (degrees-map graph)
+                                      :replace true
+                                      :seed seed)
+     (first, ))))
+
+(degrees-map (new-graph (new-nodes [1 2 3] [[2 3][][]])))
+
+(random-weighted-choice (new-graph (new-nodes [1 2 3] [[2 3][][]])))
+
 
 ;;;
 ;;; Random graph generation functions
@@ -265,24 +297,6 @@
 
 ;;;
 ;;; Query functions
-
-;; Function to assess the degree of a node
-(defn degree
-  "Function to assess the degree of a node"
-  [node]
-  (count (:neighbors node)))
-
-;; Function to assess the degrees of all nodes in a graph
-(defn degrees-map
-  "Function to assess the degrees of all nodes in a graph
-
-  Returns a map of degrees mapped to ids"
-  [graph]
-  (let [id-degree-pair (fn [node] [(:id node) (degree node)])]
-    (->> (vals graph)
-      (map id-degree-pair, )
-      (into {}, ))))
-
 
 ;; Function to obtain edges from a node
 ;; map -> seq seq

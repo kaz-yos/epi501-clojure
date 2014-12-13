@@ -145,13 +145,17 @@
 
 
 ;;;
-;;; Random graph generation functions
+;;; Random number/choice functions
 (deftest random-number-tests
   (testing "Random graph generation functions"
     (is (= (first (bigml.sampling.simple/sample (range 0 100) :seed 20141212))
            (random-choice (range 0 100) 20141212)))
     (is (= (random-choice [1]) 1))
-    (is (contains? #{1 2 3} (random-choice [1 2 3])))))
+    (is (contains? #{1 2 3} (random-choice [1 2 3])))
+    ;; only node 1 has positive weight
+    (is (= 1 (random-weighted-choice (new-graph (new-nodes [1 2 3] [[2 3][][]])))))
+    (is (= 3 (random-weighted-choice (new-graph (new-nodes [3 2 1] [[2 3][][]])))))))
+
 
 
 ;;;
