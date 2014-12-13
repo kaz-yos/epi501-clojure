@@ -319,7 +319,8 @@
 
 (deftest states-test
   (testing "Graph's state checker"
-    (is (= '(:I :R :E :S :D2) (states graph1)))
+    (is (= (sort '(:I :R :E :S :D2)) (sort (states graph1))))
+    (is (= (sort '(:I :R)) (sort (states graph1 [1 2]))))
     (is (= {:S 1, :E 1, :I 1, :R 1, :H 0, :D1 0, :D2 1} (state-freq graph1)))))
 
 

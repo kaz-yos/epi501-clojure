@@ -373,13 +373,18 @@
     ;; No need for sorting
     (set, )))
 
-;; Function to check states of nodes
+;; Function to check states of nodes in a graph
 (defn states
-  "Function to check states of nodes"
-  [graph]
-  (->> graph
-    (vals, )
-    (map :state, )))
+  "Function to check states of nodes in a graph
+
+  Give node IDs if desired"
+  ([graph] (->> graph
+             (vals, )
+             (map :state, )))
+  ;;
+  ;; If keys are specified, only get states for the selected ones
+  ([graph keys] (->> (select-keys graph keys)
+                  (states, ))))
 
 ;; Map of having 0 for all states
 (def all-states-zero {:S 0, :E 0, :I 0, :R 0, :H 0, :D1 0, :D2 0})
@@ -394,7 +399,7 @@
     (merge-with + all-states-zero, )))
 
 
-;;; 
+;;;
 ;;; Transition parameters
 ;; Mostly from Gomes et al, PLOS currents outbreaks Sep 2014
 
@@ -482,7 +487,7 @@
      ;; Loop over all nodes
      (loop [acc        []
             nodes-curr nodes
-            seed-curr  seed]       
+            seed-curr  seed]
        (cond
          (empty? nodes-curr) acc
          :else (recur (conj acc (one-step-ahead-node (first nodes-curr) seed-curr))
