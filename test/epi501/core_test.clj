@@ -181,10 +181,19 @@
     (is (= (weighted-id-seq (seed-graph-for-ba 3)) '(0 0 1 1 2 2)))
     (is (= (weighted-id-seq (seed-graph-for-ba 4)) '(0 0 0 1 1 1 2 2 2 3 3 3)))))
 
+(deftest new-seed-test
+  (testing "Seed creator"
+    (is (= '(1 -1155869325 1947844456 880516877 1359879690) (take 5 (iterate new-seed 1))))
+    (is (= '(0.1 -1155484576 -1764305998 -131000125 223718333) (take 5 (iterate new-seed 0.1))))))
+
 (deftest random-m-unique-elements-test
   (testing "Test random m unique elements"
     (is (= (random-m-unique-elements [1] 1) #{1}))
-    (is (= (contains? [#{1} #{2}] (random-m-unique-elements [1 2] 1))))))
+    ;; With seeds
+    (is (= #{1} (random-m-unique-elements [1 2] 1 9)))
+    (is (= #{2} (random-m-unique-elements [1 2] 1 10)))
+    (is (= #{1 2} (random-m-unique-elements [1 2] 2 10)))
+    (is (= #{92 6 10} (random-m-unique-elements (range 100) 3 10)))))
 
 (deftest barabasi-albert-graph-test
   (testing "Test B-A graph creation"
@@ -198,12 +207,34 @@
            {0 #epi501.core.Node{:id 0, :neighbors #{1}, :state :S, :time 0}
             1 #epi501.core.Node{:id 1, :neighbors #{0}, :state :S, :time 0}
             2 #epi501.core.Node{:id 2, :neighbors #{0 1}, :state :S, :time 0}}))
+    ;; To use seeds need to put something other than :undirectional as third argument
+    (is (= (barabasi-albert-graph 3 10 :directional 20141212)
+           (barabasi-albert-graph 3 10 :directional 20141212)))
+    (is (= (barabasi-albert-graph 10 100 :directional 20141212)
+           (barabasi-albert-graph 10 100 :directional 20141212)))
+    (is (not (= (barabasi-albert-graph 3 10 :directional 20141212)
+                (barabasi-albert-graph 3 10 :directional 20141211))))
+    (is (not (= (barabasi-albert-graph 10 100 :directional 20141212)
+                (barabasi-albert-graph 10 100 :directional 20141211))))
+    ;; Two random iterations should not match in general
+    (is (not (= (barabasi-albert-graph 3 10 :directional)
+                (barabasi-albert-graph 3 10 :directional))))
     ;; Undirected cases
     (is (= (barabasi-albert-graph 2 3 :undirectional)
            {0 #epi501.core.Node{:id 0, :neighbors #{1 2}, :state :S, :time 0}
             1 #epi501.core.Node{:id 1, :neighbors #{0 2}, :state :S, :time 0}
             2 #epi501.core.Node{:id 2, :neighbors #{0 1}, :state :S, :time 0}}))
-    ))
+    (is (= (barabasi-albert-graph 3 10 :undirectional 20141212)
+           (barabasi-albert-graph 3 10 :undirectional 20141212)))
+    (is (= (barabasi-albert-graph 10 100 :undirectional 20141212)
+           (barabasi-albert-graph 10 100 :undirectional 20141212)))
+    (is (not (= (barabasi-albert-graph 3 10 :undirectional 20141212)
+                (barabasi-albert-graph 3 10 :undirectional 20141211))))
+    (is (not (= (barabasi-albert-graph 10 100 :undirectional 20141212)
+                (barabasi-albert-graph 10 100 :undirectional 20141211))))
+    ;; Two random iterations should not match in general
+    (is (not (= (barabasi-albert-graph 3 10 :undirectional)
+                (barabasi-albert-graph 3 10 :undirectional))))))
 
 
 ;;;

@@ -243,28 +243,43 @@
   (let [rep-id (fn [node]
                  ;; Repeat the node id k_i times
                  [(repeat (count (:neighbors node)) (:id node))])]
-    ;;
+    ;; Convert graph to weighted ID seq
     (->> graph
       (vals, )
       (map rep-id, )
       (flatten, ))))
 
-;; Function to randomly pick n unique elements
-(defn random-m-unique-elements
-  "Function to randomly pick n unique elements
+;; Function to return a pseudo-random number given a seed
+(defn new-seed
+  "Function to return a pseudo-random number given a seed
 
-  Continue picking until a set has the desired length."
-  [coll m]
-  ;; First check if there are enough unique elements to pick n unique element
-  (if (< (count (set coll)) m)
-    ;; invalid
-    ;; http://stackoverflow.com/questions/5459865/how-can-i-throw-an-exception-in-clojure
-    (throw (Throwable. "Not enough unique elements in the collection"))
-    ;; valid
-    (loop [acc #{}]
-      (cond
-        (= (count acc) m) acc
-        :else (recur (conj acc (random-choice coll)))))))
+  Iterating with this function will create a predictable
+  sequence of pseudo-random numbers."
+  [seed]
+  (.nextInt (java.util.Random. seed)))
+
+;; Function to randomly pick m unique elements
+(defn random-m-unique-elements
+  "Function to randomly pick m unique elements from a collection
+
+  Continue picking until a set has the desired length"
+  ([coll m] (random-m-unique-elements coll m (rand)))
+  ([coll m seed]
+   ;; First check if there are enough unique elements to pick n unique element
+   (if (< (count (set coll)) m)
+     ;; invalid
+     ;; http://stackoverflow.com/questions/5459865/how-can-i-throw-an-exception-in-clojure
+     (throw (Throwable. "Not enough unique elements in the collection"))
+     ;; valid
+     (loop [acc #{}
+            ;; Seed needs to be updated for each iteration in a predictable way
+            seed-curr seed]
+       (cond
+         (>= (count acc) m) acc
+         ;; Need to update seed otherwise it keeps picking the same one (only one uniq elt) and never stops
+         :else (recur (conj acc (random-choice coll seed-curr))
+                      ;; Seed needs to be updated for each iteration in a predictable way
+                      (new-seed seed-curr)))))))
 
 ;; Function to create a Brabasi-Albert network
 (defn barabasi-albert-graph
@@ -275,22 +290,30 @@
   The algorithm follows the Wikipedia explanation.
   http://en.wikipedia.org/wiki/Barabási–Albert_model#Algorithm"
   ;;
-  ([m n & [undirectional]]
+  ([m n & [undirectional seed]]
    (if (> m n)
      ;; invalid
      (throw (Throwable. "m is used as the number of seed nodes; must be m <= n"))
      ;; valid
      (let [init-graph (seed-graph-for-ba m)
-           add-node-fun (if (nil? undirectional)
-                          #(add-node %1 %2)
-                          #(add-node %1 %2 :undirectional))]
+           ;; Use directional or undirectional add-node function 
+           add-node-fun (if (= undirectional :undirectional)
+                          #(add-node %1 %2 :undirectional)
+                          #(add-node %1 %2))]
        ;;
+       ;; Loop until the graph has enough nodes (node-level loop)
        (loop [acc init-graph
               id-curr m]
          (cond
            (>= (count acc) n) acc
            ;; Pick nodes to be neighbors based on weighted sampling
-           :else (let [neighbors (random-m-unique-elements (weighted-id-seq acc) m)]
+           :else (let [neighbors (random-m-unique-elements
+                                  ;; Weighted id seq of the current graph
+                                  (weighted-id-seq acc)
+                                  ;; Number of unique elements to pick from it
+                                  m
+                                  ;; Seed if provided or create one on the fly
+                                  (if seed seed (rand)))] 
                    (recur (add-node-fun acc (new-node id-curr neighbors)) (inc id-curr)))))))))
 
 ;;;
