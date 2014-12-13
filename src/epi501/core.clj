@@ -522,23 +522,57 @@
 
 ;; Function to pick transmission targets based on connections and probabilities
 (defn target-ids
-  "Function to pick transmission targets based on connections 
+  "Function to pick transmission targets based on connections
   and probabilities"
   ([graph] (target-ids graph (rand)))
   ([graph seed]
    ;; Pick nodes that are in susceptible states
-   (let [candidate-nodes (susceptible-nodes graph)
-         candidate-node-ids (map :id candidate-nodes)
-         candidate-node-neighbor-ids-seq (map :neighbors candidate-nodes)
-         candidate-node-neighbor-states (map #(states graph %) candidate-node-neighbor-ids-seq)]
-     
-     (print candidate-node-neighbor-states)
-     candidate-node-ids
-   )))
+   (let [candidate-nodes (susceptible-nodes graph)]
+     ;;
+     ;; Outer loop over candidate nodes
+     (loop [acc [] ; vector of IDs of nodes destined for transmission
+            candidate-nodes-curr candidate-nodes
+            seed-curr seed]
+       (cond
+         ;; After iterating over all candidate nodes,
+         ;; Return IDs for nodes destined for transmission
+         (empty? candidate-nodes-curr) acc
+         :else (let [node-being-assessed (first candidate-nodes-curr)
+                     neighbor-states (states graph (:neighbors node-being-assessed))
+                     transmission-probs (bigml.sampling.simple/sample
+                                         (transmission-per-contact neighbor-states)
+                                         :seed seed-curr)
+                     ;; Inner loop over neighbors
+                     transmission-status
+                     (loop [transmission-probs-curr (take maximum-n-of-contacts transmission-probs)
+                            seed-curr-inner seed-curr]
+                       (cond
+                         ;; If interation is over, return false with current seed
+                         (empty? transmission-probs-curr) {:transmit? false, :seed seed-curr-inner}
+                         ;; If transmission occurs, return true with current seed
+                         ;; Uniform [0,1) in Java 7
+                         ;; http://docs.oracle.com/javase/7/docs/api/java/util/Random.html
+                         (< (.nextDouble (java.util.Random. seed-curr-inner)) (first transmission-probs-curr))
+                         {:transmit? true :seed seed-curr-inner}                         
+                         ;; Otherwise keep trying to infect
+                         :else (recur (rest transmission-probs-curr)
+                                      (new-seed seed-curr-inner))))]
+                 ;; Outer loop return value
+                 (if (:transmit? transmission-status)
+                   ;; Transmission Yes
+                   (recur (conj acc (:id node-being-assessed))
+                          (rest candidate-nodes-curr)
+                          (:seed transmission-status))
+                   ;; Transmission No
+                   (recur acc
+                          (rest candidate-nodes-curr)
+                          (:seed transmission-status)))))))))
 
-;; Function to try to infect people in target-ids
+;; Function to infect people in target-ids (deterministic)
 (defn transmit
-  "Function to try to infect people in target-ids"
+  "Function to infect people in target-ids
+
+  This function is determinitstic."
   [graph target-ids]
   ;; use function to update state
   :out)

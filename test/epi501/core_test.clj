@@ -370,10 +370,10 @@
 
 (deftest target-ids-test
   (testing "Function to pick IDs of susceptible nodes that are destined for transmission"
-    (is (= (range 10)
-           (sort (target-ids (new-graph (new-nodes (range 10)))))))
+    ;; Infection cannot occur if there are only S nodes
+    (is (= []
+           (sort (target-ids (new-graph (new-nodes (range 10))) 10))))
 
     (is (= '(0 4 5 6 7 8 9)
-           (sort (target-ids (set-states (new-graph (new-nodes (range 10))) [1 2 3] :I)))))
-
+           (sort (target-ids (set-states (new-graph (new-nodes (range 10))) (range 1 10) :I) 100))))
     ))
