@@ -1,3 +1,18 @@
+*.DS_Store
+*~
+*.zip
+*.tar.gz
+*.RData
+*.pdf
+*.png
+*.doc*
+*.ppt*
+*.xls*
+*.csv
+*.aux
+auto/
+figure/
+cache/
 /target
 /classes
 /checkouts
@@ -7,3 +22,4 @@ pom.xml.asc
 *.class
 /.lein-*
 /.nrepl-port
+/test/epi501/#core_test.clj#
