@@ -142,30 +142,41 @@
                    (rest ids-curr)))))
 
 
-;; Function to set state
+;; Function to set state of a node object
+(def set-state-node #(set-field-node %1 :state %2))
+;; Function to set state of a node in a graph
 ;; record map, num, keyword -> map
 (def set-state #(set-field %1 %2 :state %3))
-;; Function to set state for multiple nodes
+;; Function to set state for multiple nodes in a graph
 (def set-states #(set-fields %1 %2 :state %3))
 
 
-;; Function to set time to an arbitrary time
+;; Function to set time of a node object to an arbitrary time
+(def set-time-node #(set-field-node %1 :time %2))
+;; Function to set time of a node in a graph to an arbitrary time
 ;; record map, num, num -> map
 (def set-time #(set-field %1 %2 :time %3))
 ;; Function to set times to an arbitrary time
 (def set-times #(set-fields %1 %2 :time %3))
 
-;; Function to reset time to zero
+;; Function to reset time to zero (node)
+(def reset-time-node #(set-time-node %1 0))
+;; Function to reset time to zero (node in graph)
 (def reset-time #(set-time %1 %2 0))
-;; Function to reset times to zero
+;; Function to reset times to zero (nodes in graph)
 (def reset-times #(set-times %1 %2 0))
 
-;; Function to increment time by one
+;; Function to increment time by one (node object)
+(defn inc-time-node
+  "Function to increment time by one"
+  [node]
+  (update-in node [:time] inc))
+;; Function to increment time by one (node in graph)
 (defn inc-time
   "Function to increment time by one"
   [graph node-id]
   (update-in graph [node-id :time] inc))
-;; Function to increment times by one
+;; Function to increment times by one (nodes in graph)
 (defn inc-times
   "Function to increment times by one"
   [graph node-ids]
