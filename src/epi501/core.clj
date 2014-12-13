@@ -470,12 +470,13 @@
      (set-state-node node next-state-of-node))))
 
 ;; Function to simulate time lapse
-(defn time-lapse
-  "Function to simulate time lapse
+(defn unit-time-lapse
+  "Function to simulate lapse of one unit time
 
   This funcion takes a graph, get a seq of nodes, update each
-  node in a reproducible manner."
-  ([graph] (time-lapse graph (rand)))
+  node in a reproducible manner. Run new-graph on the resulting
+  seq of nodes to complete a time step."
+  ([graph] (unit-time-lapse graph (rand)))
   ([graph seed]
    (let [nodes (vals graph)]
      ;; Loop over all nodes

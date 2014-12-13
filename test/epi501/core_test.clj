@@ -347,9 +347,9 @@
     (is (= (new-node 1 [] :R)
            (one-step-ahead-node (new-node 1 [] :I) 140)))))
 
-(deftest time-lapse-test
+(deftest unit-time-lapse-test
   (testing "Time lapse function to conduct stochastic transition for each node"
     (is (= '(:I :I :R :I :I :I :I :I :I :I :I :I :I :I :I :R :I :I :I :I)
-           (map :state (time-lapse (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 100))))
+           (map :state (unit-time-lapse (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 100))))
     (is (= '(:R :I :R :R :I :I :I :I :I :R :I :I :I :I :I :I :I :I :I :I)
-           (map :state (time-lapse (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 140))))))
+           (map :state (unit-time-lapse (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 140))))))
