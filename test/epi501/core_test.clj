@@ -116,7 +116,7 @@
            (reset-time-node (new-node 1 [2 3] :S 2))))
     (is (= (new-node 1 [2 3] :S 3)
            (inc-time-node (new-node 1 [2 3] :S 2))))
-    
+
     ;; A node in a graph
     (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [2 1 1 2 3]))
            (set-field (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
@@ -138,7 +138,7 @@
            (reset-time (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
                                              [:S :R :E :S :D2] [2 1 1 2 3]))
                        1)))
-    
+
     ;; Mutliple nodes in a graph
     (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:I :I :I :I :I] [2 1 1 2 3]))
            (set-fields (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
@@ -370,10 +370,14 @@
 
 (deftest target-ids-test
   (testing "Function to pick IDs of susceptible nodes that are destined for transmission"
-    ;; Infection cannot occur if there are only S nodes
+    ;; Transmission cannot occur if there are only S nodes (seed intentionally not set)
     (is (= []
-           (sort (target-ids (new-graph (new-nodes (range 10))) 10))))
+           (target-ids (seed-graph-for-ba 10))))
+    ;; Transmission cannot occur if no connection (seed intentionally not set)
+    (is (= []
+           (target-ids (set-states (new-graph (new-nodes (range 100))) (range 1 100) :I))))
 
-    (is (= '(0 4 5 6 7 8 9)
-           (sort (target-ids (set-states (new-graph (new-nodes (range 10))) (range 1 10) :I) 100))))
+    ;; This one should be infected most of the time (seed intentionally not set)
+    (is (= [0]
+           (target-ids (set-states (seed-graph-for-ba 100) (range 1 100) :I))))
     ))

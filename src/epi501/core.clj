@@ -522,8 +522,12 @@
 
 ;; Function to pick transmission targets based on connections and probabilities
 (defn target-ids
-  "Function to pick transmission targets based on connections
-  and probabilities"
+  "Function to pick transmission targets stochastically
+
+  The outer loop iterate over candidate susceptible nodes.
+  Each candidate will meet with its neighbors (inner loop)
+  until there are no more neighbors, maximum defined in
+  maximum-n-of-contacts is reached, or infected."
   ([graph] (target-ids graph (rand)))
   ([graph seed]
    ;; Pick nodes that are in susceptible states
@@ -537,6 +541,7 @@
          ;; After iterating over all candidate nodes,
          ;; Return IDs for nodes destined for transmission
          (empty? candidate-nodes-curr) acc
+         ;; Otherwise loop over current node's neighbors to determine transmission
          :else (let [node-being-assessed (first candidate-nodes-curr)
                      neighbor-states (states graph (:neighbors node-being-assessed))
                      transmission-probs (bigml.sampling.simple/sample
