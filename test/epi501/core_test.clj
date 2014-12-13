@@ -105,6 +105,11 @@
 
 (deftest set-field-test
   (testing "Change a node's status"
+    ;; A node object
+    (is (= (new-node 1 [2 3] :I 2)
+           (set-field-node (new-node 1 [2 3] :S 2) :state :I)))
+    
+    ;; A node in a graph
     (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [2 1 1 2 3]))
            (set-field (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
                                             [:I :R :E :S :D2] [2 1 1 2 3]))
@@ -125,7 +130,8 @@
            (reset-time (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
                                              [:S :R :E :S :D2] [2 1 1 2 3]))
                        1)))
-    ;; Mutliple nodes
+    
+    ;; Mutliple nodes in a graph
     (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:I :I :I :I :I] [2 1 1 2 3]))
            (set-fields (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
                                              [:S :R :E :S :D2] [2 1 1 2 3]))
