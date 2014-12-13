@@ -2,7 +2,7 @@
   (:require [clojure.test :refer :all]
             [epi501.core :refer :all]))
 
-;;; 
+;;;
 ;;; Data representation and definition
 ;; A node is a map with an id and a neighbors vector
 (def node1 (new-node 1 [2 3] :I  2))
@@ -14,7 +14,7 @@
 (def graph1 (new-graph [node1 node2 node3 node4 node5]))
 
 
-;;; 
+;;;
 ;;; Data creation
 (deftest new-graph-test
   (testing "new graph creation"
@@ -46,7 +46,7 @@
            {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}}))
     (is (= (add-node (new-graph (new-nodes [1])) (new-node 2))
            {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
-            2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}}))    
+            2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}}))
     (is (= (add-node (new-graph (new-nodes [1])) (new-node 2 [1]))
            {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
             2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}}))
@@ -124,7 +124,40 @@
     (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [0 1 1 2 3]))
            (reset-time (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
                                              [:S :R :E :S :D2] [2 1 1 2 3]))
-                       1)))))
+                       1)))
+    ;; Mutliple nodes
+    (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:I :I :I :I :I] [2 1 1 2 3]))
+           (set-fields (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                             [:S :R :E :S :D2] [2 1 1 2 3]))
+                       [1 2 3 4 5] :state :I)))
+    (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:I :I :I :I :I] [2 1 1 2 3]))
+           (set-states (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                             [:S :R :E :S :D2] [2 1 1 2 3]))
+                       [1 2 3 4 5] :I)))
+    (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [0 0 0 0 0]))
+           (set-times (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                            [:S :R :E :S :D2] [2 1 1 2 3]))
+                      [1 2 3 4 5] 0)))
+    (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [1 1 1 1 1]))
+           (inc-times (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                            [:S :R :E :S :D2] [0 0 0 0 0]))
+                      [1 2 3 4 5])))))
+
+
+;;;
+;;; Random number/choice functions
+(deftest random-number-tests
+  (testing "Random graph generation functions"
+    (is (= (first (bigml.sampling.simple/sample (range 0 100) :seed 20141212))
+           (random-choice (range 0 100) 20141212)))
+    (is (= (random-choice [1]) 1))
+    (is (contains? #{1 2 3} (random-choice [1 2 3])))
+    ;; only node 1 has positive weight
+    (is (= [1 1 1 1 1] (take 5 (random-weighted-id-seq (new-graph (new-nodes [1 2 3] [[2 3][][]]))))))
+    (is (= [3 3 3 3 3] (take 5 (random-weighted-id-seq (new-graph (new-nodes [3 2 1] [[2 3][][]]))))))
+    (is (= {3 2494, 1 4964, 2 2542}
+           (frequencies (take 10000 (random-weighted-id-seq (new-graph (new-nodes [1 2 3] [[2 3][1][1]])) 1)))))))
+
 
 
 ;;;
@@ -148,15 +181,19 @@
     (is (= (weighted-id-seq (seed-graph-for-ba 3)) '(0 0 1 1 2 2)))
     (is (= (weighted-id-seq (seed-graph-for-ba 4)) '(0 0 0 1 1 1 2 2 2 3 3 3)))))
 
-(deftest random-choice-test
-  (testing "Test random choice"
-    (is (= (random-choice [1]) 1))
-    (is (contains? [1 2 3] (random-choice [1 2 3])))))
+(deftest new-seed-test
+  (testing "Seed creator"
+    (is (= '(1 -1155869325 1947844456 880516877 1359879690) (take 5 (iterate new-seed 1))))
+    (is (= '(0.1 -1155484576 -1764305998 -131000125 223718333) (take 5 (iterate new-seed 0.1))))))
 
 (deftest random-m-unique-elements-test
   (testing "Test random m unique elements"
     (is (= (random-m-unique-elements [1] 1) #{1}))
-    (is (= (contains? [#{1} #{2}] (random-m-unique-elements [1 2] 1))))))
+    ;; With seeds
+    (is (= #{1} (random-m-unique-elements [1 2] 1 9)))
+    (is (= #{2} (random-m-unique-elements [1 2] 1 10)))
+    (is (= #{1 2} (random-m-unique-elements [1 2] 2 10)))
+    (is (= #{92 6 10} (random-m-unique-elements (range 100) 3 10)))))
 
 (deftest barabasi-albert-graph-test
   (testing "Test B-A graph creation"
@@ -170,16 +207,38 @@
            {0 #epi501.core.Node{:id 0, :neighbors #{1}, :state :S, :time 0}
             1 #epi501.core.Node{:id 1, :neighbors #{0}, :state :S, :time 0}
             2 #epi501.core.Node{:id 2, :neighbors #{0 1}, :state :S, :time 0}}))
+    ;; To use seeds need to put something other than :undirectional as third argument
+    (is (= (barabasi-albert-graph 3 10 :directional 20141212)
+           (barabasi-albert-graph 3 10 :directional 20141212)))
+    (is (= (barabasi-albert-graph 10 100 :directional 20141212)
+           (barabasi-albert-graph 10 100 :directional 20141212)))
+    (is (not (= (barabasi-albert-graph 3 10 :directional 20141212)
+                (barabasi-albert-graph 3 10 :directional 20141211))))
+    (is (not (= (barabasi-albert-graph 10 100 :directional 20141212)
+                (barabasi-albert-graph 10 100 :directional 20141211))))
+    ;; Two random iterations should not match in general
+    (is (not (= (barabasi-albert-graph 3 10 :directional)
+                (barabasi-albert-graph 3 10 :directional))))
     ;; Undirected cases
     (is (= (barabasi-albert-graph 2 3 :undirectional)
            {0 #epi501.core.Node{:id 0, :neighbors #{1 2}, :state :S, :time 0}
             1 #epi501.core.Node{:id 1, :neighbors #{0 2}, :state :S, :time 0}
             2 #epi501.core.Node{:id 2, :neighbors #{0 1}, :state :S, :time 0}}))
-    ))
+    (is (= (barabasi-albert-graph 3 10 :undirectional 20141212)
+           (barabasi-albert-graph 3 10 :undirectional 20141212)))
+    (is (= (barabasi-albert-graph 10 100 :undirectional 20141212)
+           (barabasi-albert-graph 10 100 :undirectional 20141212)))
+    (is (not (= (barabasi-albert-graph 3 10 :undirectional 20141212)
+                (barabasi-albert-graph 3 10 :undirectional 20141211))))
+    (is (not (= (barabasi-albert-graph 10 100 :undirectional 20141212)
+                (barabasi-albert-graph 10 100 :undirectional 20141211))))
+    ;; Two random iterations should not match in general
+    (is (not (= (barabasi-albert-graph 3 10 :undirectional)
+                (barabasi-albert-graph 3 10 :undirectional))))))
 
 
-;;; 
-;;; Node-level information extraction 
+;;;
+;;; Node-level information extraction
 (deftest id-test
   (testing "id extration"
     (is (= (:id node1) 1))
@@ -220,6 +279,10 @@
     (is (= (edges node4) [[4 3]]))
     (is (= (edges node5) []))))
 
+(deftest degrees-test
+  (testing "Obtain degrees"
+    (is (= 2 (degree (new-node 1 #{2 3})))
+        (= {1 2, 2 1, 3 1} (degrees-map (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]])))))))
 
 ;;; Population-level information extraction
 (deftest unique-undirected-edge-set-test
@@ -232,6 +295,13 @@
     (is (= (unique-directed-edge-set graph1) #{[1 2] [1 3] [2 1] [3 1] [3 4] [4 3]}))
     (is (= (count (unique-directed-edge-set (barabasi-albert-graph 5 100 :undirectional))) (+ (* 5 4) (* 95 5 2))))))
 
+(deftest states-test
+  (testing "Graph's state checker"
+    (is (= '(:I :R :E :S :D2) (states graph1)))
+    (is (= {:S 1, :E 1, :I 1, :R 1, :H 0, :D1 0, :D2 1} (state-freq graph1)))))
+
 
 ;;; Define a specific B-A graph for simulation
-(def ba-graph {0 #epi501.core.Node{:id 0, :neighbors #{7 1 3 2}, :state :S, :time 0}, 7 #epi501.core.Node{:id 7, :neighbors #{0 4 8}, :state :S, :time 0}, 1 #epi501.core.Node{:id 1, :neighbors #{0 4 15 6 2 9 5 14 16}, :state :S, :time 0}, 4 #epi501.core.Node{:id 4, :neighbors #{7 1 13 17 2 9 10 8}, :state :S, :time 0}, 15 #epi501.core.Node{:id 15, :neighbors #{1 2 19}, :state :S, :time 0}, 13 #epi501.core.Node{:id 13, :neighbors #{4 17 8}, :state :S, :time 0}, 6 #epi501.core.Node{:id 6, :neighbors #{1 2 11}, :state :S, :time 0}, 17 #epi501.core.Node{:id 17, :neighbors #{4 13}, :state :S, :time 0}, 3 #epi501.core.Node{:id 3, :neighbors #{0 2 11 18}, :state :S, :time 0}, 12 #epi501.core.Node{:id 12, :neighbors #{2 9}, :state :S, :time 0}, 2 #epi501.core.Node{:id 2, :neighbors #{0 1 4 15 6 3 12 5 14 16 10 18}, :state :S, :time 0}, 19 #epi501.core.Node{:id 19, :neighbors #{15 9}, :state :S, :time 0}, 11 #epi501.core.Node{:id 11, :neighbors #{6 3}, :state :S, :time 0}, 9 #epi501.core.Node{:id 9, :neighbors #{1 4 12 19}, :state :S, :time 0}, 5 #epi501.core.Node{:id 5, :neighbors #{1 2}, :state :S, :time 0}, 14 #epi501.core.Node{:id 14, :neighbors #{1 2}, :state :S, :time 0}, 16 #epi501.core.Node{:id 16, :neighbors #{1 2}, :state :S, :time 0}, 10 #epi501.core.Node{:id 10, :neighbors #{4 2}, :state :S, :time 0}, 18 #epi501.core.Node{:id 18, :neighbors #{3 2}, :state :S, :time 0}, 8 #epi501.core.Node{:id 8, :neighbors #{7 4 13}, :state :S, :time 0}})
+(def ba-graph
+  (-> {0 #epi501.core.Node{:id 0, :neighbors #{7 1 3 2}, :state :S, :time 0}, 7 #epi501.core.Node{:id 7, :neighbors #{0 4 8}, :state :S, :time 0}, 1 #epi501.core.Node{:id 1, :neighbors #{0 4 15 6 2 9 5 14 16}, :state :S, :time 0}, 4 #epi501.core.Node{:id 4, :neighbors #{7 1 13 17 2 9 10 8}, :state :S, :time 0}, 15 #epi501.core.Node{:id 15, :neighbors #{1 2 19}, :state :S, :time 0}, 13 #epi501.core.Node{:id 13, :neighbors #{4 17 8}, :state :S, :time 0}, 6 #epi501.core.Node{:id 6, :neighbors #{1 2 11}, :state :S, :time 0}, 17 #epi501.core.Node{:id 17, :neighbors #{4 13}, :state :S, :time 0}, 3 #epi501.core.Node{:id 3, :neighbors #{0 2 11 18}, :state :S, :time 0}, 12 #epi501.core.Node{:id 12, :neighbors #{2 9}, :state :S, :time 0}, 2 #epi501.core.Node{:id 2, :neighbors #{0 1 4 15 6 3 12 5 14 16 10 18}, :state :S, :time 0}, 19 #epi501.core.Node{:id 19, :neighbors #{15 9}, :state :S, :time 0}, 11 #epi501.core.Node{:id 11, :neighbors #{6 3}, :state :S, :time 0}, 9 #epi501.core.Node{:id 9, :neighbors #{1 4 12 19}, :state :S, :time 0}, 5 #epi501.core.Node{:id 5, :neighbors #{1 2}, :state :S, :time 0}, 14 #epi501.core.Node{:id 14, :neighbors #{1 2}, :state :S, :time 0}, 16 #epi501.core.Node{:id 16, :neighbors #{1 2}, :state :S, :time 0}, 10 #epi501.core.Node{:id 10, :neighbors #{4 2}, :state :S, :time 0}, 18 #epi501.core.Node{:id 18, :neighbors #{3 2}, :state :S, :time 0}, 8 #epi501.core.Node{:id 8, :neighbors #{7 4 13}, :state :S, :time 0}}
+    (set-states [0 1] :I)))
