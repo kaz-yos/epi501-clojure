@@ -606,6 +606,71 @@
   (set-states graph target-ids :I))
 
 
+;;; Push alternative
+;; Function to pick transmission targets based on connections and probabilities
+(defn target-ids-push
+  "Function to pick transmission targets stochastically (Push)
+
+  The outer loop iterate over infectious nodes. Each
+  infectious node will meet with its neighbors (inner loop)
+  until there are no more neighbors or maximum defined in
+  maximum-n-of-contacts is reached."
+  ;;
+  ([graph] (target-ids-push graph (rng-int)))
+  ([graph seed]
+   ;;
+   ;; Outer loop over infectious nodes
+   (loop [acc #{} ; set of IDs of nodes destined for transmission
+          ;; Pick nodes that are in infectious states
+          infectious-nodes-curr (infectious-nodes graph)
+          seed-curr seed]
+     (cond
+       ;; After iterating over all infectious nodes,
+       ;; Return IDs for nodes destined for transmission
+       (empty? infectious-nodes-curr) acc
+       ;; Otherwise loop over current node's neighbors to determine transmission
+       :else (let [node-being-assessed (first infectious-nodes-curr)
+                   infectiousness      (transmission-per-contact (:state node-being-assessed))
+                   neighbors           (:neighbors node-being-assessed)
+                   neighbors-shuffled  (bigml.sampling.simple/sample neighbors :seed seed-curr)
+                   ;;
+                   ;; Inner loop over neighbors
+                   transmission-results
+                   (loop [acc-neighbors-infected []
+                          neighbors-to-visit     (take maximum-n-of-contacts neighbors-shuffled)
+                          seed-curr-inner        seed-curr]
+                     (cond
+                       ;; If interation is over, return with neighbors infected and current seed
+                       (empty? neighbors-to-visit) {:ids acc-neighbors-infected, :seed seed-curr-inner}
+                       ;;
+                       ;; If transmission occurs, add to infected seq and recur
+                       ;; Uniform [0,1) in Java 7
+                       ;; http://docs.oracle.com/javase/7/docs/api/java/util/Random.html
+                       (< (.nextDouble (java.util.Random. seed-curr-inner)) infectiousness)
+                       (recur (conj acc-neighbors-infected (first neighbors-to-visit))
+                              (rest neighbors-to-visit)
+                              (new-seed seed-curr-inner))
+                       ;;
+                       ;; Otherwise proceed without infecting the current neighbors infected
+                       :else (recur acc-neighbors-infected
+                                    (rest neighbors-to-visit)
+                                    (new-seed seed-curr-inner))))] ; Inner loop is within let
+               ;;
+               ;; Outer loop
+               (recur (into acc (:ids transmission-results))
+                      (rest infectious-nodes-curr)
+                      (:seed transmission-results)))))))
+
+;; Function to infect people in target-ids (deterministic)
+;; map, seq -> map
+(defn transmit-push
+  "Function to infect people in target-ids
+
+  This function is determinitstic."
+  [graph target-ids]
+  ;; use function to update state
+  (set-states graph target-ids :I))
+
 
 ;;;
 ;;; Main function for entry
