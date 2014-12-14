@@ -626,8 +626,10 @@
           seed-curr seed]
      (cond
        ;; After iterating over all infectious nodes,
-       ;; Return IDs for nodes destined for transmission
+       ;; return IDs for nodes destined for transmission
+       ;; Only susceptible nodes can be infected
        (empty? infectious-nodes-curr) acc
+       ;;
        ;; Otherwise loop over current node's neighbors to determine transmission
        :else (let [node-being-assessed (first infectious-nodes-curr)
                    infectiousness      (transmission-per-contact (:state node-being-assessed))
@@ -646,7 +648,11 @@
                        ;; If transmission occurs, add to infected seq and recur
                        ;; Uniform [0,1) in Java 7
                        ;; http://docs.oracle.com/javase/7/docs/api/java/util/Random.html
-                       (< (.nextDouble (java.util.Random. seed-curr-inner)) infectiousness)
+                       (and
+                        ;; Stochastic component
+                        (< (.nextDouble (java.util.Random. seed-curr-inner)) infectiousness)
+                        ;; Susceptibility check
+                        (contains? susceptible-states (:state (graph (first neighbors-to-visit)))))
                        (recur (conj acc-neighbors-infected (first neighbors-to-visit))
                               (rest neighbors-to-visit)
                               (new-seed seed-curr-inner))
