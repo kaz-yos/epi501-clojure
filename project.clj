@@ -9,7 +9,10 @@
 
   :dependencies [[org.clojure/clojure "1.6.0"]
                  ;; https://github.com/bigmlcom/sampling
-                 [bigml/sampling "3.0"]]
+                 [bigml/sampling "3.0"]
+                 ;; https://github.com/cemerick/pprng
+                 [com.cemerick/pprng "0.0.3"]
+                 ]
 
   :main ^:skip-aot epi501.core
 
