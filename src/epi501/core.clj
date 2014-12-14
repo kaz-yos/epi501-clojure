@@ -534,7 +534,7 @@
 
 ;; Function to pick transmission targets based on connections and probabilities
 (defn target-ids
-  "Function to pick transmission targets stochastically
+  "Function to pick transmission targets stochastically (Pull)
 
   The outer loop iterate over candidate susceptible nodes.
   Each candidate will meet with its neighbors (inner loop)
