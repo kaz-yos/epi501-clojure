@@ -207,7 +207,7 @@
 
   Iterating with this function will create a predictable
   sequence of pseudo-random numbers. If the initial seed
-  is not provided, it will be created by pprng."  
+  is not provided, it will be created by pprng."
   [seed]
   (.nextInt (java.util.Random. seed)))
 
@@ -572,17 +572,11 @@
                          ;; Uniform [0,1) in Java 7
                          ;; http://docs.oracle.com/javase/7/docs/api/java/util/Random.html
                          (< (.nextDouble (java.util.Random. seed-curr-inner)) (first transmission-probs-curr))
-                         {:transmit? true :seed seed-curr-inner}                         
+                         {:transmit? true :seed seed-curr-inner}
                          ;; Otherwise keep trying to infect
                          :else (recur (rest transmission-probs-curr)
                                       (new-seed seed-curr-inner))))] ; Inner loop is within let
-                 
                  ;;
-                 ;; (println "node-being-assessed" node-being-assessed)
-                 ;; (println "neighbor-states" neighbor-states)
-                 (println "shuffled-probs" shuffled-probs)
-                 ;;
-                 
                  ;; Outer loop return value
                  (if (:transmit? transmission-status)
                    ;; Transmission Yes
@@ -595,13 +589,14 @@
                           (:seed transmission-status)))))))))
 
 ;; Function to infect people in target-ids (deterministic)
+;; map, seq -> map
 (defn transmit
   "Function to infect people in target-ids
 
   This function is determinitstic."
   [graph target-ids]
   ;; use function to update state
-  :out)
+  (set-states graph target-ids :I))
 
 
 
