@@ -513,18 +513,25 @@
                       ;; Reproducible sequence of seeds determined by the initial seed
                       (new-seed seed-curr)))))))
 
-;; Set of states that are susceptible
-(def susceptible-states #{:S})
-;; Function to find candidates of transmission
-(defn susceptible-nodes
-  "Function to find candidates of transmission"
-  [graph]
+
+;; Function to return nodes in specified states
+(defn nodes-of-interest
+  "Function to return nodes in specified states"
+  [states-of-interest-set graph]
   (->> graph
     (vals, )
-    (filter #(contains? susceptible-states (:state %)), )))
+    (filter #(contains? states-of-interest-set (:state %)), )))
+
+;; Set of states that are susceptible
+(def susceptible-states #{:S})
+;; Function to find susceptible nodes
+(def susceptible-nodes (partial nodes-of-interest susceptible-states))
 
 ;; Set of states that are infectious
 (def infectious-states #{:I :H :D1})
+;; Function to find susceptible nodes
+(def infectious-nodes (partial nodes-of-interest infectious-states))
+
 ;; Transmission probability of each infectious state upon 1 unit contact
 ;; Need to define 0 for non-infectious states because S individuals need to
 ;; meet people including infectious and non-infectious ones
