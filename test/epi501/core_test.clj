@@ -370,55 +370,27 @@
 
 (deftest target-ids-test
   (testing "Function to pick IDs of susceptible nodes that are destined for transmission
-(some parts may fail probablistically)"
+ (some parts may fail probablistically)"
     ;; Transmission cannot occur if there are only S nodes (seed intentionally not set)
-    (is (= []
+    (is (= #{}
            (target-ids (seed-graph-for-ba 10))))
     ;; Transmission cannot occur if no connection (seed intentionally not set)
-    (is (= []
+    (is (= #{}
            (target-ids (set-states (new-graph (new-nodes (range 100))) (range 1 100) :I))))
 
     ;; This one should be infected most of the time (seed intentionally not set)
     ;; Only one non-infected among 100 member fully connected network.
-    (is (= [0]
+    (is (= #{0}
            (target-ids (set-states (seed-graph-for-ba 100) (range 1 100) :I))))
 
     ;; Infection from one person
-    (is (= [73 96 10 18 52 67 71 42 80 37 63 94 8 49 84]
+    (is (= #{20 90 44 94}
            (target-ids (set-states (seed-graph-for-ba 100) [0] :I) (new-seed 20141213))))
     ))
 
 (deftest transmit-test
   (testing "Deterministic transmission based on precomputed targed-ids"
-    (is (= (set-states (seed-graph-for-ba 10) [0 4 5 6] :I)
-           (let [graph-one-I (set-states (seed-graph-for-ba 10) [0] :I)]
-             (transmit graph-one-I
-                       (target-ids graph-one-I (new-seed 20141213))))))))
-
-
-(deftest target-ids-push-test
-  (testing "Function to pick IDs of susceptible nodes that are destined for transmission
- (some parts may fail probablistically)"
-    ;; Transmission cannot occur if there are only S nodes (seed intentionally not set)
-    (is (= #{}
-           (target-ids-push (seed-graph-for-ba 10))))
-    ;; Transmission cannot occur if no connection (seed intentionally not set)
-    (is (= #{}
-           (target-ids-push (set-states (new-graph (new-nodes (range 100))) (range 1 100) :I))))
-
-    ;; This one should be infected most of the time (seed intentionally not set)
-    ;; Only one non-infected among 100 member fully connected network.
-    (is (= #{0}
-           (target-ids-push (set-states (seed-graph-for-ba 100) (range 1 100) :I))))
-
-    ;; Infection from one person
-    (is (= #{20 90 44 94}
-           (target-ids-push (set-states (seed-graph-for-ba 100) [0] :I) (new-seed 20141213))))
-    ))
-
-(deftest transmit-push-test
-  (testing "Deterministic transmission based on precomputed targed-ids"
     (is (= (set-states (seed-graph-for-ba 10) [0 1 4 5 6] :I)
            (let [graph-one-I (set-states (seed-graph-for-ba 10) [0] :I)]
              (transmit graph-one-I
-                       (target-ids-push graph-one-I (new-seed 20141213))))))))
+                       (target-ids graph-one-I (new-seed 20141213))))))))

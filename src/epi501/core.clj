@@ -535,76 +535,9 @@
 ;; Define the maximum number of people to contact per unit time
 (def maximum-n-of-contacts 5)
 
+
 ;; Function to pick transmission targets based on connections and probabilities
 (defn target-ids
-  "Function to pick transmission targets stochastically (Pull)
-
-  The outer loop iterate over candidate susceptible nodes.
-  Each candidate will meet with its neighbors (inner loop)
-  until there are no more neighbors, maximum defined in
-  maximum-n-of-contacts is reached, or infected."
-  ([graph] (target-ids graph (rng-int)))
-  ([graph seed]
-   ;; Pick nodes that are in susceptible states
-   (let [candidate-nodes (susceptible-nodes graph)]
-     ;;
-     ;; Outer loop over candidate nodes
-     (loop [acc [] ; vector of IDs of nodes destined for transmission
-            candidate-nodes-curr candidate-nodes
-            seed-curr seed]
-       (cond
-         ;; After iterating over all candidate nodes,
-         ;; Return IDs for nodes destined for transmission
-         (empty? candidate-nodes-curr) acc
-         ;; Otherwise loop over current node's neighbors to determine transmission
-         :else (let [node-being-assessed (first candidate-nodes-curr)
-                     neighbor-states     (states graph (:neighbors node-being-assessed))
-                     transmission-probs  (->> neighbor-states
-                                           (map transmission-per-contact, ))
-                     shuffled-probs  (bigml.sampling.simple/sample
-                                      transmission-probs
-                                      :seed seed-curr)
-                     ;; Inner loop over neighbors
-                     transmission-status
-                     (loop [transmission-probs-curr (take maximum-n-of-contacts shuffled-probs)
-                            seed-curr-inner seed-curr]
-                       (cond
-                         ;; If interation is over, return false with current seed
-                         (empty? transmission-probs-curr) {:transmit? false, :seed seed-curr-inner}
-                         ;; If transmission occurs, return true with current seed
-                         ;; Uniform [0,1) in Java 7
-                         ;; http://docs.oracle.com/javase/7/docs/api/java/util/Random.html
-                         (< (.nextDouble (java.util.Random. seed-curr-inner)) (first transmission-probs-curr))
-                         {:transmit? true :seed seed-curr-inner}
-                         ;; Otherwise keep trying to infect
-                         :else (recur (rest transmission-probs-curr)
-                                      (new-seed seed-curr-inner))))] ; Inner loop is within let
-                 ;;
-                 ;; Outer loop return value
-                 (if (:transmit? transmission-status)
-                   ;; Transmission Yes
-                   (recur (conj acc (:id node-being-assessed))
-                          (rest candidate-nodes-curr)
-                          (:seed transmission-status))
-                   ;; Transmission No
-                   (recur acc
-                          (rest candidate-nodes-curr)
-                          (:seed transmission-status)))))))))
-
-;; Function to infect people in target-ids (deterministic)
-;; map, seq -> map
-(defn transmit
-  "Function to infect people in target-ids
-
-  This function is determinitstic."
-  [graph target-ids]
-  ;; use function to update state
-  (set-states graph target-ids :I))
-
-
-;;; Push alternative
-;; Function to pick transmission targets based on connections and probabilities
-(defn target-ids-push
   "Function to pick transmission targets stochastically (Push)
 
   The outer loop iterate over infectious nodes. Each
@@ -612,7 +545,7 @@
   until there are no more neighbors or maximum defined in
   maximum-n-of-contacts is reached."
   ;;
-  ([graph] (target-ids-push graph (rng-int)))
+  ([graph] (target-ids graph (rng-int)))
   ([graph seed]
    ;;
    ;; Outer loop over infectious nodes
@@ -662,6 +595,18 @@
                (recur (into acc (:ids transmission-results))
                       (rest infectious-nodes-curr)
                       (:seed transmission-results)))))))
+
+;; Function to infect people in target-ids (deterministic)
+;; map, seq -> map
+(defn transmit
+  "Function to infect people in target-ids
+
+  This function is determinitstic."
+  [graph target-ids]
+  ;; use function to update state
+  (set-states graph target-ids :I))
+
+
 
 
 ;;;
