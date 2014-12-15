@@ -1,13 +1,9 @@
 ;;; EPI501 Dynamics of Infectious Diseases Final Project
 ;;; Author Kazuki Yoshida
 (ns epi501.core
-  (:gen-class
-   ;; https://github.com/bigmlcom/sampling
-   :require (bigml.sampling [simple :as simple]
-                            [reservoir :as reservoir]
-                            [stream :as stream])
-            (bigml.sampling.test [stream :as stream-test])))
+  (:gen-class))
 
+;; https://github.com/bigmlcom/sampling
 (require '(bigml.sampling [simple :as simple]
                             [reservoir :as reservoir]
                             [stream :as stream]))
