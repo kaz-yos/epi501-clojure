@@ -420,5 +420,5 @@
   (testing "Deterministic transmission based on precomputed targed-ids"
     (is (= (set-states (seed-graph-for-ba 10) [0 1 4 5 6] :I)
            (let [graph-one-I (set-states (seed-graph-for-ba 10) [0] :I)]
-             (transmit-push graph-one-I
-                            (target-ids-push graph-one-I (new-seed 20141213))))))))
+             (transmit graph-one-I
+                       (target-ids-push graph-one-I (new-seed 20141213))))))))

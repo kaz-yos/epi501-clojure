@@ -663,16 +663,6 @@
                       (rest infectious-nodes-curr)
                       (:seed transmission-results)))))))
 
-;; Function to infect people in target-ids (deterministic)
-;; map, seq -> map
-(defn transmit-push
-  "Function to infect people in target-ids
-
-  This function is determinitstic."
-  [graph target-ids]
-  ;; use function to update state
-  (set-states graph target-ids :I))
-
 
 ;;;
 ;;; Main function for entry
