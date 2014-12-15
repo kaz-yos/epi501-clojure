@@ -518,6 +518,10 @@
     (vals, )
     (filter #(contains? states-of-interest-set (:state %)), )))
 
+
+;;;
+;;; Transmission functions
+
 ;; Set of states that are susceptible
 (def susceptible-states #{:S})
 ;; Function to find susceptible nodes
@@ -607,6 +611,24 @@
   (set-states graph target-ids :I))
 
 
+;;;
+;;; Simulation functions
+
+(defn simulate
+  "Actually run simulation n iterations given a graph
+
+  These steps are involved:
+  (0) Assess the initial sizes of partitions
+  (1) Look for infection targets
+  (2) Progress time by one unit
+  (3) Transmit infection to targets chosen in (1)
+  (4) Record the new sizes of partitions
+  Repeat (1)-(4) until n iterations are completed"
+  [graph n]
+
+  ;; 
+  :out
+  )
 
 
 ;;;
