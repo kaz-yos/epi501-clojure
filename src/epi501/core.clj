@@ -1,13 +1,9 @@
 ;;; EPI501 Dynamics of Infectious Diseases Final Project
 ;;; Author Kazuki Yoshida
 (ns epi501.core
-  (:gen-class
-   ;; https://github.com/bigmlcom/sampling
-   :require (bigml.sampling [simple :as simple]
-                            [reservoir :as reservoir]
-                            [stream :as stream])
-            (bigml.sampling.test [stream :as stream-test])))
+  (:gen-class))
 
+;; https://github.com/bigmlcom/sampling
 (require '(bigml.sampling [simple :as simple]
                             [reservoir :as reservoir]
                             [stream :as stream]))
@@ -513,18 +509,25 @@
                       ;; Reproducible sequence of seeds determined by the initial seed
                       (new-seed seed-curr)))))))
 
-;; Set of states that are susceptible
-(def susceptible-states #{:S})
-;; Function to find candidates of transmission
-(defn susceptible-nodes
-  "Function to find candidates of transmission"
-  [graph]
+
+;; Function to return nodes in specified states
+(defn nodes-of-interest
+  "Function to return nodes in specified states"
+  [states-of-interest-set graph]
   (->> graph
     (vals, )
-    (filter #(contains? susceptible-states (:state %)), )))
+    (filter #(contains? states-of-interest-set (:state %)), )))
+
+;; Set of states that are susceptible
+(def susceptible-states #{:S})
+;; Function to find susceptible nodes
+(def susceptible-nodes (partial nodes-of-interest susceptible-states))
 
 ;; Set of states that are infectious
 (def infectious-states #{:I :H :D1})
+;; Function to find susceptible nodes
+(def infectious-nodes (partial nodes-of-interest infectious-states))
+
 ;; Transmission probability of each infectious state upon 1 unit contact
 ;; Need to define 0 for non-infectious states because S individuals need to
 ;; meet people including infectious and non-infectious ones
@@ -532,61 +535,66 @@
 ;; Define the maximum number of people to contact per unit time
 (def maximum-n-of-contacts 5)
 
+
 ;; Function to pick transmission targets based on connections and probabilities
 (defn target-ids
-  "Function to pick transmission targets stochastically (Pull)
+  "Function to pick transmission targets stochastically (Push)
 
-  The outer loop iterate over candidate susceptible nodes.
-  Each candidate will meet with its neighbors (inner loop)
-  until there are no more neighbors, maximum defined in
-  maximum-n-of-contacts is reached, or infected."
+  The outer loop iterate over infectious nodes. Each
+  infectious node will meet with its neighbors (inner loop)
+  until there are no more neighbors or maximum defined in
+  maximum-n-of-contacts is reached."
+  ;;
   ([graph] (target-ids graph (rng-int)))
   ([graph seed]
-   ;; Pick nodes that are in susceptible states
-   (let [candidate-nodes (susceptible-nodes graph)]
-     ;;
-     ;; Outer loop over candidate nodes
-     (loop [acc [] ; vector of IDs of nodes destined for transmission
-            candidate-nodes-curr candidate-nodes
-            seed-curr seed]
-       (cond
-         ;; After iterating over all candidate nodes,
-         ;; Return IDs for nodes destined for transmission
-         (empty? candidate-nodes-curr) acc
-         ;; Otherwise loop over current node's neighbors to determine transmission
-         :else (let [node-being-assessed (first candidate-nodes-curr)
-                     neighbor-states     (states graph (:neighbors node-being-assessed))
-                     transmission-probs  (->> neighbor-states
-                                           (map transmission-per-contact, ))
-                     shuffled-probs  (bigml.sampling.simple/sample
-                                      transmission-probs
-                                      :seed seed-curr)
-                     ;; Inner loop over neighbors
-                     transmission-status
-                     (loop [transmission-probs-curr (take maximum-n-of-contacts shuffled-probs)
-                            seed-curr-inner seed-curr]
-                       (cond
-                         ;; If interation is over, return false with current seed
-                         (empty? transmission-probs-curr) {:transmit? false, :seed seed-curr-inner}
-                         ;; If transmission occurs, return true with current seed
-                         ;; Uniform [0,1) in Java 7
-                         ;; http://docs.oracle.com/javase/7/docs/api/java/util/Random.html
-                         (< (.nextDouble (java.util.Random. seed-curr-inner)) (first transmission-probs-curr))
-                         {:transmit? true :seed seed-curr-inner}
-                         ;; Otherwise keep trying to infect
-                         :else (recur (rest transmission-probs-curr)
-                                      (new-seed seed-curr-inner))))] ; Inner loop is within let
-                 ;;
-                 ;; Outer loop return value
-                 (if (:transmit? transmission-status)
-                   ;; Transmission Yes
-                   (recur (conj acc (:id node-being-assessed))
-                          (rest candidate-nodes-curr)
-                          (:seed transmission-status))
-                   ;; Transmission No
-                   (recur acc
-                          (rest candidate-nodes-curr)
-                          (:seed transmission-status)))))))))
+   ;;
+   ;; Outer loop over infectious nodes
+   (loop [acc #{} ; set of IDs of nodes destined for transmission
+          ;; Pick nodes that are in infectious states
+          infectious-nodes-curr (infectious-nodes graph)
+          seed-curr seed]
+     (cond
+       ;; After iterating over all infectious nodes,
+       ;; return IDs for nodes destined for transmission
+       ;; Only susceptible nodes can be infected
+       (empty? infectious-nodes-curr) acc
+       ;;
+       ;; Otherwise loop over current node's neighbors to determine transmission
+       :else (let [node-being-assessed (first infectious-nodes-curr)
+                   infectiousness      (transmission-per-contact (:state node-being-assessed))
+                   neighbors           (:neighbors node-being-assessed)
+                   neighbors-shuffled  (bigml.sampling.simple/sample neighbors :seed seed-curr)
+                   ;;
+                   ;; Inner loop over neighbors
+                   transmission-results
+                   (loop [acc-neighbors-infected []
+                          neighbors-to-visit     (take maximum-n-of-contacts neighbors-shuffled)
+                          seed-curr-inner        seed-curr]
+                     (cond
+                       ;; If interation is over, return with neighbors infected and current seed
+                       (empty? neighbors-to-visit) {:ids acc-neighbors-infected, :seed seed-curr-inner}
+                       ;;
+                       ;; If transmission occurs, add to infected seq and recur
+                       ;; Uniform [0,1) in Java 7
+                       ;; http://docs.oracle.com/javase/7/docs/api/java/util/Random.html
+                       (and
+                        ;; Stochastic component
+                        (< (.nextDouble (java.util.Random. seed-curr-inner)) infectiousness)
+                        ;; Susceptibility check
+                        (contains? susceptible-states (:state (graph (first neighbors-to-visit)))))
+                       (recur (conj acc-neighbors-infected (first neighbors-to-visit))
+                              (rest neighbors-to-visit)
+                              (new-seed seed-curr-inner))
+                       ;;
+                       ;; Otherwise proceed without infecting the current neighbors infected
+                       :else (recur acc-neighbors-infected
+                                    (rest neighbors-to-visit)
+                                    (new-seed seed-curr-inner))))] ; Inner loop is within let
+               ;;
+               ;; Outer loop
+               (recur (into acc (:ids transmission-results))
+                      (rest infectious-nodes-curr)
+                      (:seed transmission-results)))))))
 
 ;; Function to infect people in target-ids (deterministic)
 ;; map, seq -> map
@@ -597,6 +605,7 @@
   [graph target-ids]
   ;; use function to update state
   (set-states graph target-ids :I))
+
 
 
 
