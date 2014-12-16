@@ -350,10 +350,12 @@
 
 (deftest unit-time-lapse-test
   (testing "Time lapse function to conduct stochastic transition for each node"
-    (is (= '(:I :I :R :I :I :I :I :I :I :I :I :I :I :I :I :R :I :I :I :I)
-           (map :state (unit-time-lapse (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 100))))
-    (is (= '(:R :I :R :R :I :I :I :I :I :R :I :I :I :I :I :I :I :I :I :I)
-           (map :state (unit-time-lapse (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 140))))))
+    (is (= (sort '(:I :I :R :I :I :I :I :I :I :I :I :I :I :I :I :R :I :I :I :I))
+           (sort (map :state (vals (unit-time-lapse (new-graph (map #(set-state-node % :I)
+                                                                    (new-nodes (range 20)))) 100))))))
+    (is (= (sort '(:R :I :R :R :I :I :I :I :I :R :I :I :I :I :I :I :I :I :I :I))
+           (sort (map :state (vals (unit-time-lapse (new-graph (map #(set-state-node % :I)
+                                                                    (new-nodes (range 20)))) 140))))))))
 
 
 ;;; Transmission processes

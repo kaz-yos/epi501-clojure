@@ -503,7 +503,9 @@
             nodes-curr nodes
             seed-curr  seed]
        (cond
-         (empty? nodes-curr) acc
+         ;; When done, return as a graph (hash-map)
+         (empty? nodes-curr) (new-graph acc)
+         ;; Otherwise continue to the next node
          :else (recur (conj acc (one-step-ahead-node (first nodes-curr) seed-curr))
                       (rest nodes-curr)
                       ;; Reproducible sequence of seeds determined by the initial seed
