@@ -396,3 +396,14 @@
            (let [graph-one-I (set-states (seed-graph-for-ba 10) [0] :I)]
              (transmit graph-one-I
                        (target-ids graph-one-I (new-seed 20141213))))))))
+
+
+(deftest simulate-test
+  (testing "Simulation of n cycles"
+    (let [test-graph1 (set-states (barabasi-albert-graph 10 100 :undirectional 100) [89] :I)]
+      ;; No iteration (just return the initial one
+      (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99})
+             (map state-freq (simulate test-graph1 0))))
+      ;; One interation
+
+      )))

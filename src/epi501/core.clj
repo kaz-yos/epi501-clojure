@@ -626,7 +626,8 @@
   (2) Progress time by one unit
   (3) Transmit infection to targets chosen in (1)
   (4) Record the new sizes of partitions
-  Repeat (1)-(4) until n iterations are completed"
+  (5) Repeat (1)-(4) until n iterations are completed
+  (6) Return a vector of graphs"
 
   ;; Set the seed if not given
   ([graph n] (simulate graph n (rng-int)))
@@ -634,28 +635,31 @@
   ;; Real function body
   ([graph n seed]
    ;; Create a vector to store compartment size map over time
-   (let [states-over-time [(state-freq graph)]]
+   (let [init-graph-vec [graph]]
      (cond
        ;; Stop immediatelly if no time step is requested
-       (<= n 0) states-over-time
+       (<= n 0) init-graph-vec
        ;; Otherwise start looping
        :else
-       (loop [states-over-time-curr states-over-time
+       (loop [graphs-over-time-curr init-graph-vec
               seed-curr             seed
               graph-curr            graph
               iter-n-curr           0]
+         (println (str "current iteration: " iter-n-curr))
+         ;; (println (str "current states: " (last graphs-over-time-curr)))
+         
          (cond
            ;; Return when target iteration is reached
-           (= n iter-n-curr) states-over-time
+           (= n iter-n-curr) graphs-over-time-curr
            ;; Otherwise one 
            :else
            (let [updated-graph (transmit ; Step (3)
                                 ;; Step (2)
-                                (unit-time-lapse graph)
+                                (unit-time-lapse graph-curr)
                                 ;; Step (1)
-                                (target-ids graph))]
+                                (target-ids graph-curr))]
 
-             (recur (conj states-over-time-curr updated-graph)
+             (recur (conj graphs-over-time-curr updated-graph)
                     (new-seed seed-curr)
                     updated-graph
                     (inc iter-n-curr)))))))))
