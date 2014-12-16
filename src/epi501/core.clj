@@ -668,6 +668,33 @@
                     updated-graph
                     (inc iter-n-curr)))))))))
 
+
+;;; 
+;;; Plotting
+
+;; Function to convert convert 'simulate' output to a plottable data
+(defn plottable-data
+  "Function to convert convert 'simulate' output to a plottable data"
+  [seq-graphs]
+  (let [seq-compartment-sizes (->> seq-graphs
+                                (map state-freq, ))
+        compartment-names     (keys (first seq-compartment-sizes))
+        index                 (range (count seq-compartment-sizes))
+        output-map            {:index index}]
+
+    ;; Loop over compartments to create a seq of size at each time
+    (loop [compartment-names-curr compartment-names
+           acc output-map]
+      (cond
+        ;; When done return the map
+        (empty? compartment-names-curr) acc
+        ;; Otherwise
+        :else (let [compartment     (first compartment-names-curr)
+                    sizes-over-time (map compartment seq-compartment-sizes)]
+                (recur (rest compartment-names-curr)
+                       (into acc {compartment sizes-over-time})))))))
+
+
 ;;;
 ;;; Main function for entry
 (defn -main
