@@ -533,7 +533,7 @@
 ;; Transmission probability of each infectious state upon 1 unit contact
 ;; Need to define 0 for non-infectious states because S individuals need to
 ;; meet people including infectious and non-infectious ones
-(def transmission-per-contact {:S 0, :E 0, :I 0.5, :H 0.5, :R 0.5, :D1 0.5, :D2 0})
+(def transmission-per-contact {:S 0, :E 0, :I 0.5, :H 0.5, :R 0, :D1 0.5, :D2 0})
 ;; Define the maximum number of people to contact per unit time
 (def maximum-n-of-contacts 5)
 
