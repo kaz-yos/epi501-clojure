@@ -610,7 +610,7 @@
   This function is determinitstic."
   [graph target-ids]
   ;; use function to update state
-  (set-states graph target-ids :I))
+  (set-states graph target-ids :E))
 
 
 ;;;
