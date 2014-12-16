@@ -373,19 +373,19 @@
   (testing "Function to pick IDs of susceptible nodes that are destined for transmission"
     ;; Transmission cannot occur if there are only S nodes (seed intentionally not set)
     (is (= #{}
-           (target-ids (seed-graph-for-ba 10))))
+           (target-ids transmission-per-contact maximum-n-of-contacts (seed-graph-for-ba 10))))
     ;; Transmission cannot occur if no connection (seed intentionally not set)
     (is (= #{}
-           (target-ids (set-states (new-graph (new-nodes (range 100))) (range 1 100) :I))))
+           (target-ids transmission-per-contact maximum-n-of-contacts (set-states (new-graph (new-nodes (range 100))) (range 1 100) :I))))
     ;; This seed result in no infections
     (is (= #{}
-           (target-ids (set-states (seed-graph-for-ba 100) (range 1 100) :I) 5)))
+           (target-ids transmission-per-contact maximum-n-of-contacts (set-states (seed-graph-for-ba 100) (range 1 100) :I) 5)))
     ;; This seed result in infection
     (is (= #{0}
-           (target-ids (set-states (seed-graph-for-ba 100) (range 1 100) :I) 6)))
+           (target-ids transmission-per-contact maximum-n-of-contacts (set-states (seed-graph-for-ba 100) (range 1 100) :I) 6)))
     ;; Infection from one person
     (is (= #{20 90 44 94}
-           (target-ids (set-states (seed-graph-for-ba 100) [0] :I) (new-seed 20141213))))
+           (target-ids transmission-per-contact maximum-n-of-contacts (set-states (seed-graph-for-ba 100) [0] :I) (new-seed 20141213))))
     ))
 
 
@@ -394,7 +394,8 @@
     (is (= (set-states (set-states (seed-graph-for-ba 10) [0] :I) [1 4 5 6] :E)
            (let [graph-one-I (set-states (seed-graph-for-ba 10) [0] :I)]
              (transmit graph-one-I
-                       (target-ids graph-one-I (new-seed 20141213))))))))
+                       (target-ids transmission-per-contact maximum-n-of-contacts
+                                   graph-one-I (new-seed 20141213))))))))
 
 
 (deftest simulate-test
@@ -402,11 +403,11 @@
     (let [test-graph1 (set-states (barabasi-albert-graph 10 100 :undirectional 100) [89] :I)]
       ;; No iterations (just return the initial one
       (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99})
-             (map state-freq (simulate test-graph1 0))))
+             (map state-freq (simulate transmission-per-contact maximum-n-of-contacts test-graph1 0))))
       ;; One interation
       (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96})
-             (map state-freq (simulate test-graph1 1 20141216))))
+             (map state-freq (simulate transmission-per-contact maximum-n-of-contacts test-graph1 1 20141216))))
       ;; 10 iterations
       (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96} {:I 2, :R 0, :E 4, :D2 0, :D1 0, :H 0, :S 94} {:I 2, :R 0, :E 6, :D2 0, :D1 0, :H 0, :S 92} {:I 2, :R 0, :E 9, :D2 0, :D1 0, :H 0, :S 89} {:I 4, :R 0, :E 10, :D2 0, :D1 0, :H 0, :S 86} {:I 6, :R 0, :E 12, :D2 0, :D1 0, :H 0, :S 82} {:I 9, :R 0, :E 23, :D2 0, :D1 0, :H 0, :S 68} {:I 15, :R 0, :E 26, :D2 0, :D1 0, :H 0, :S 59} {:I 20, :R 0, :E 36, :D2 0, :D1 0, :H 0, :S 44} {:I 28, :R 0, :E 41, :D2 0, :D1 0, :H 0, :S 31})
-             (map state-freq (simulate test-graph1 10 20141216))))
+             (map state-freq (simulate transmission-per-contact maximum-n-of-contacts test-graph1 10 20141216))))
       )))

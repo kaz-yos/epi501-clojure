@@ -518,6 +518,17 @@
 
 
 ;;;
+;;; Transmission parameters
+
+;; Transmission probability of each infectious state upon 1 unit contact
+;; Need to define 0 for non-infectious states because S individuals need to
+;; meet people including infectious and non-infectious ones
+(def transmission-per-contact {:S 0, :E 0, :I 0.5, :H 0.5, :R 0, :D1 0.5, :D2 0})
+;; Define the maximum number of people to contact per unit time
+(def maximum-n-of-contacts 5)
+
+
+;;;
 ;;; Transmission functions
 
 ;; Set of states that are susceptible
@@ -530,14 +541,6 @@
 ;; Function to find susceptible nodes
 (def infectious-nodes (partial nodes-of-interest infectious-states))
 
-;; Transmission probability of each infectious state upon 1 unit contact
-;; Need to define 0 for non-infectious states because S individuals need to
-;; meet people including infectious and non-infectious ones
-(def transmission-per-contact {:S 0, :E 0, :I 0.5, :H 0.5, :R 0, :D1 0.5, :D2 0})
-;; Define the maximum number of people to contact per unit time
-(def maximum-n-of-contacts 5)
-
-
 ;; Function to pick transmission targets based on connections and probabilities
 (defn target-ids
   "Function to pick transmission targets stochastically (Push)
@@ -546,9 +549,11 @@
   infectious node will meet with its neighbors (inner loop)
   until there are no more neighbors or maximum defined in
   maximum-n-of-contacts is reached."
-  ;;
-  ([graph] (target-ids graph (rng-int)))
-  ([graph seed]
+  ;; If a seed is not given create one.
+  ([transmission-per-contact maximum-n-of-contacts graph]
+   (target-ids transmission-per-contact maximum-n-of-contacts graph (rng-int)))
+  ;; Real body
+  ([transmission-per-contact maximum-n-of-contacts graph seed]
    ;;
    ;; Outer loop over infectious nodes
    (loop [acc #{} ; set of IDs of nodes destined for transmission
@@ -626,10 +631,10 @@
   (6) Return a vector of graphs"
 
   ;; Set the seed if not given
-  ([graph n] (simulate graph n (rng-int)))
-
+  ([transmission-per-contact maximum-n-of-contacts graph n]
+   (simulate transmission-per-contact maximum-n-of-contacts graph n (rng-int)))
   ;; Real function body
-  ([graph n seed]
+  ([transmission-per-contact maximum-n-of-contacts graph n seed]
    ;; Create a vector to store compartment size map over time
    (let [init-graph-vec [graph]]
      (cond
@@ -653,7 +658,8 @@
                                 ;; Step (2) is stochastic
                                 (unit-time-lapse graph-curr seed-curr)
                                 ;; Step (1) is stochastic
-                                (target-ids graph-curr seed-curr))]
+                                (target-ids transmission-per-contact maximum-n-of-contacts
+                                            graph-curr seed-curr))]
 
              (recur (conj graphs-over-time-curr updated-graph)
                     (new-seed seed-curr)
@@ -666,3 +672,4 @@
   "I don't do a whole lot ... yet."
   [& args]
   (println "Hello, World!"))
+
