@@ -651,13 +651,13 @@
          (cond
            ;; Return when target iteration is reached
            (= n iter-n-curr) graphs-over-time-curr
-           ;; Otherwise one 
+           ;; Otherwise perform one interation
            :else
-           (let [updated-graph (transmit ; Step (3)
-                                ;; Step (2)
-                                (unit-time-lapse graph-curr)
-                                ;; Step (1)
-                                (target-ids graph-curr))]
+           (let [updated-graph (transmit ; Step (3) is deterministic
+                                ;; Step (2) is stochastic
+                                (unit-time-lapse graph-curr seed-curr)
+                                ;; Step (1) is stochastic
+                                (target-ids graph-curr seed-curr))]
 
              (recur (conj graphs-over-time-curr updated-graph)
                     (new-seed seed-curr)
