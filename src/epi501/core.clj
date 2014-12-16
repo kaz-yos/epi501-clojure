@@ -23,7 +23,7 @@
 
 
 ;;;
-;;; Data creation functions
+;;; Data (nodes and graphs) creation functions
 
 ;; Function to return a new node with initial status
 (defn new-node
@@ -191,7 +191,7 @@
 
 
 ;;;
-;;; Random number generation/sampling functions
+;;; Random number generation/random sampling functions
 
 ;; Function for random integer generation
 (defn rng-int []
@@ -416,26 +416,22 @@
 ;;; Transition parameters
 ;; Mostly from Gomes et al, PLOS currents outbreaks Sep 2014
 
+;; Parameters in time
 ;; I->H
 (def mean-time-to-hospitalization 5)
-
 ;; I->Dx
 (def mean-time-to-death 10)
-
 ;; I->R
 (def mean-time-to-recovery 10)
-(def p-I->R  (/ 1 mean-time-to-recovery))
 
-
-(def p-I->R  (* (/ 1 14) 0.65 ))
-(def p-I->D1 (* (/ 1 14) 0.35 0.5))
-(def p-I->D2 (* (/ 1 14) 0.35 0.5))
 
 ;; Define transition probabilities per unit time
 
 ;; Transition from susceptible state
 ;; No automatic transition into E/I
+;; 
 (def p-S->X {:S 1, :E 0, :I 0, :R 0})
+
 ;; Transition from exposed (infected & latent period)
 (def p-E->X {:E 6/7, :I 1/7, :S 0, :R 0})
 ;; Transition from infectious state
@@ -503,7 +499,9 @@
             nodes-curr nodes
             seed-curr  seed]
        (cond
-         (empty? nodes-curr) acc
+         ;; When done, return as a graph (hash-map)
+         (empty? nodes-curr) (new-graph acc)
+         ;; Otherwise continue to the next node
          :else (recur (conj acc (one-step-ahead-node (first nodes-curr) seed-curr))
                       (rest nodes-curr)
                       ;; Reproducible sequence of seeds determined by the initial seed
@@ -517,6 +515,10 @@
   (->> graph
     (vals, )
     (filter #(contains? states-of-interest-set (:state %)), )))
+
+
+;;;
+;;; Transmission functions
 
 ;; Set of states that are susceptible
 (def susceptible-states #{:S})
@@ -604,10 +606,59 @@
   This function is determinitstic."
   [graph target-ids]
   ;; use function to update state
-  (set-states graph target-ids :I))
+  (set-states graph target-ids :E))
 
 
+;;;
+;;; Simulation functions
+;; This function iterates the cycle n times
 
+(defn simulate
+  "Actually run simulation n iterations given a graph
+
+  These steps are involved:
+  (0) Assess the initial sizes of partitions
+  (1) Look for infection targets
+  (2) Progress time by one unit
+  (3) Transmit infection to targets chosen in (1)
+  (4) Record the new sizes of partitions
+  (5) Repeat (1)-(4) until n iterations are completed
+  (6) Return a vector of graphs"
+
+  ;; Set the seed if not given
+  ([graph n] (simulate graph n (rng-int)))
+
+  ;; Real function body
+  ([graph n seed]
+   ;; Create a vector to store compartment size map over time
+   (let [init-graph-vec [graph]]
+     (cond
+       ;; Stop immediatelly if no time step is requested
+       (<= n 0) init-graph-vec
+       ;; Otherwise start looping
+       :else
+       (loop [graphs-over-time-curr init-graph-vec
+              seed-curr             seed
+              graph-curr            graph
+              iter-n-curr           0]
+         (println (str "current iteration: " iter-n-curr))
+         (println (str "current states: " (state-freq graph-curr)))
+         
+         (cond
+           ;; Return when target iteration is reached
+           (= n iter-n-curr) graphs-over-time-curr
+           ;; Otherwise perform one interation
+           :else
+           (let [updated-graph (transmit ; Step (3) is deterministic
+                                ;; Step (2) is stochastic
+                                (unit-time-lapse graph-curr seed-curr)
+                                ;; Step (1) is stochastic
+                                (target-ids graph-curr seed-curr))]
+
+             (recur (conj graphs-over-time-curr updated-graph)
+                    (new-seed seed-curr)
+                    updated-graph
+                    (inc iter-n-curr)))))))))
 
 ;;;
 ;;; Main function for entry
