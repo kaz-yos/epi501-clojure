@@ -23,7 +23,7 @@
 
 
 ;;;
-;;; Data creation functions
+;;; Data (nodes and graphs) creation functions
 
 ;; Function to return a new node with initial status
 (defn new-node
@@ -191,7 +191,7 @@
 
 
 ;;;
-;;; Random number generation/sampling functions
+;;; Random number generation/random sampling functions
 
 ;; Function for random integer generation
 (defn rng-int []
@@ -613,6 +613,7 @@
 
 ;;;
 ;;; Simulation functions
+;; This function iterates the cycle n times
 
 (defn simulate
   "Actually run simulation n iterations given a graph
