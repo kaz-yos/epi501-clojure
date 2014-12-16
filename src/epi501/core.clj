@@ -5,11 +5,13 @@
 
 ;; https://github.com/bigmlcom/sampling
 (require '(bigml.sampling [simple :as simple]
-                            [reservoir :as reservoir]
-                            [stream :as stream]))
+                          [reservoir :as reservoir]
+                          [stream :as stream]))
 
 ;; https://github.com/cemerick/pprng
 (require '[cemerick.pprng :as rng])
+
+(require '[incanter.stats :as is])
 
 
 ;;;
