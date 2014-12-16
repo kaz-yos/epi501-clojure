@@ -392,7 +392,7 @@
 
 (deftest transmit-test
   (testing "Deterministic transmission based on precomputed targed-ids"
-    (is (= (set-states (seed-graph-for-ba 10) [0 1 4 5 6] :I)
+    (is (= (set-states (set-states (seed-graph-for-ba 10) [0] :I) [1 4 5 6] :E)
            (let [graph-one-I (set-states (seed-graph-for-ba 10) [0] :I)]
              (transmit graph-one-I
                        (target-ids graph-one-I (new-seed 20141213))))))))
