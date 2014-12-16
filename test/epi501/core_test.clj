@@ -400,9 +400,13 @@
 (deftest simulate-test
   (testing "Simulation of n cycles"
     (let [test-graph1 (set-states (barabasi-albert-graph 10 100 :undirectional 100) [89] :I)]
-      ;; No iteration (just return the initial one
+      ;; No iterations (just return the initial one
       (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99})
              (map state-freq (simulate test-graph1 0))))
       ;; One interation
-
+      (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96})
+             (map state-freq (simulate test-graph1 1 20141216))))
+      ;; 10 iterations
+      (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96} {:I 2, :R 0, :E 4, :D2 0, :D1 0, :H 0, :S 94} {:I 2, :R 0, :E 6, :D2 0, :D1 0, :H 0, :S 92} {:I 2, :R 0, :E 9, :D2 0, :D1 0, :H 0, :S 89} {:I 4, :R 0, :E 10, :D2 0, :D1 0, :H 0, :S 86} {:I 6, :R 0, :E 12, :D2 0, :D1 0, :H 0, :S 82} {:I 9, :R 0, :E 23, :D2 0, :D1 0, :H 0, :S 68} {:I 15, :R 0, :E 26, :D2 0, :D1 0, :H 0, :S 59} {:I 20, :R 0, :E 36, :D2 0, :D1 0, :H 0, :S 44} {:I 28, :R 0, :E 41, :D2 0, :D1 0, :H 0, :S 31})
+             (map state-freq (simulate test-graph1 10 20141216))))
       )))

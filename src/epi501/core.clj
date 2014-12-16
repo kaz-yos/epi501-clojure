@@ -416,26 +416,22 @@
 ;;; Transition parameters
 ;; Mostly from Gomes et al, PLOS currents outbreaks Sep 2014
 
+;; Parameters in time
 ;; I->H
 (def mean-time-to-hospitalization 5)
-
 ;; I->Dx
 (def mean-time-to-death 10)
-
 ;; I->R
 (def mean-time-to-recovery 10)
-(def p-I->R  (/ 1 mean-time-to-recovery))
 
-
-(def p-I->R  (* (/ 1 14) 0.65 ))
-(def p-I->D1 (* (/ 1 14) 0.35 0.5))
-(def p-I->D2 (* (/ 1 14) 0.35 0.5))
 
 ;; Define transition probabilities per unit time
 
 ;; Transition from susceptible state
 ;; No automatic transition into E/I
+;; 
 (def p-S->X {:S 1, :E 0, :I 0, :R 0})
+
 ;; Transition from exposed (infected & latent period)
 (def p-E->X {:E 6/7, :I 1/7, :S 0, :R 0})
 ;; Transition from infectious state
@@ -646,7 +642,7 @@
               graph-curr            graph
               iter-n-curr           0]
          (println (str "current iteration: " iter-n-curr))
-         ;; (println (str "current states: " (last graphs-over-time-curr)))
+         (println (str "current states: " (state-freq graph-curr)))
          
          (cond
            ;; Return when target iteration is reached
