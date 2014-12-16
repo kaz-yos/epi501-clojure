@@ -1,16 +1,16 @@
 ;;; EPI501 Dynamics of Infectious Diseases Final Project
 ;;; Author Kazuki Yoshida
 (ns epi501.core
-  (:gen-class
-   ;; https://github.com/bigmlcom/sampling
-   :require (bigml.sampling [simple :as simple]
-                            [reservoir :as reservoir]
-                            [stream :as stream])
-            (bigml.sampling.test [stream :as stream-test])))
+  (:gen-class))
 
+;; https://github.com/bigmlcom/sampling
 (require '(bigml.sampling [simple :as simple]
                             [reservoir :as reservoir]
                             [stream :as stream]))
+
+;; https://github.com/cemerick/pprng
+(require '[cemerick.pprng :as rng])
+
 
 ;;;
 ;;; Data representation
@@ -23,7 +23,7 @@
 
 
 ;;;
-;;; Data creation functions
+;;; Data (nodes and graphs) creation functions
 
 ;; Function to return a new node with initial status
 (defn new-node
@@ -191,15 +191,29 @@
 
 
 ;;;
-;;; Random number generation/sampling functions
+;;; Random number generation/random sampling functions
+
+;; Function for random integer generation
+(defn rng-int []
+  (.nextInt (java.util.Random.)))
+
+;; Function to return a pseudo-random integer given a large integer seed
+(defn new-seed
+  "Return a pseudo-random integer given a large integer seed
+
+  Iterating with this function will create a predictable
+  sequence of pseudo-random numbers. If the initial seed
+  is not provided, it will be created by pprng."
+  [seed]
+  (.nextInt (java.util.Random. seed)))
 
 ;; Function for random sampling
 (defn random-choice
   "Python's random choice like function
 
-  If as seed is not given, a seed is created by (rand)"
+  If a seed is not given, a seed is created by (rng-int)"
   ;;
-  ([coll] (random-choice coll (rand)))
+  ([coll] (random-choice coll (rng-int)))
   ([coll seed] (first (bigml.sampling.simple/sample coll :seed seed))))
 
 ;; Function to assess the degree of a node
@@ -222,14 +236,12 @@
 ;; Function to do weighted sampling of nodes based on degrees
 (defn random-weighted-id-seq
   "Function to do weighted sampling of nodes based on degrees"
-  ([graph] (random-weighted-id-seq graph (rand)))
+  ([graph] (random-weighted-id-seq graph (rng-int)))
   ([graph seed]
    (->> (bigml.sampling.simple/sample (map :id (vals graph))
                                       :weigh (degrees-map graph)
                                       :replace true
-                                      :seed seed)
-     ;; (first, )
-     )))
+                                      :seed seed))))
 
 
 ;;;
@@ -237,7 +249,9 @@
 
 ;; Function to create a fully connected seed
 (defn seed-graph-for-ba
-  "Function to create a graph consisting of m0 fully connected nodes"
+  "Function to create a graph consisting of m0 fully connected nodes
+
+  This function is deterministic."
   [m0]
   (->> (let [node-ids (range 0 m0)]
          (for [ego-id node-ids]
@@ -266,21 +280,13 @@
       (map rep-id, )
       (flatten, ))))
 
-;; Function to return a pseudo-random number given a seed
-(defn new-seed
-  "Function to return a pseudo-random number given a seed
-
-  Iterating with this function will create a predictable
-  sequence of pseudo-random numbers."
-  [seed]
-  (.nextInt (java.util.Random. seed)))
 
 ;; Function to randomly pick m unique elements
 (defn random-m-unique-elements
   "Function to randomly pick m unique elements from a collection
 
   Continue picking until a set has the desired length"
-  ([coll m] (random-m-unique-elements coll m (rand)))
+  ([coll m] (random-m-unique-elements coll m (rng-int)))
   ([coll m seed]
    ;; First check if there are enough unique elements to pick n unique element
    (if (< (count (set coll)) m)
@@ -330,7 +336,7 @@
                                   ;; Number of unique elements to pick from it
                                   m
                                   ;; Seed if provided or create one on the fly
-                                  (if seed seed (rand)))]
+                                  (if seed seed (rng-int)))]
                    (recur (add-node-fun acc (new-node id-curr neighbors)) (inc id-curr)))))))))
 
 ;;;
@@ -410,26 +416,22 @@
 ;;; Transition parameters
 ;; Mostly from Gomes et al, PLOS currents outbreaks Sep 2014
 
+;; Parameters in time
 ;; I->H
 (def mean-time-to-hospitalization 5)
-
 ;; I->Dx
 (def mean-time-to-death 10)
-
 ;; I->R
 (def mean-time-to-recovery 10)
-(def p-I->R  (/ 1 mean-time-to-recovery))
 
-
-(def p-I->R  (* (/ 1 14) 0.65 ))
-(def p-I->D1 (* (/ 1 14) 0.35 0.5))
-(def p-I->D2 (* (/ 1 14) 0.35 0.5))
 
 ;; Define transition probabilities per unit time
 
 ;; Transition from susceptible state
 ;; No automatic transition into E/I
+;; 
 (def p-S->X {:S 1, :E 0, :I 0, :R 0})
+
 ;; Transition from exposed (infected & latent period)
 (def p-E->X {:E 6/7, :I 1/7, :S 0, :R 0})
 ;; Transition from infectious state
@@ -455,8 +457,8 @@
 ;; Function to pick X for A->X stochastic transition based on A state value
 (defn next-state
   "Function to pick X for A->X stochastic transition based on A state value"
-  ([node] (next-state node (rand)))
-  ([node seed]
+  ([p-A->X-map node] (next-state p-A->X-map node (rng-int)))
+  ([p-A->X-map node seed]
    ;; Pick transition probability map based on current state
    (let [p-A->X (p-A->X-map (:state node))]
      (->> (bigml.sampling.simple/sample
@@ -476,10 +478,10 @@
   "Function to simulate time lapse for a node
 
   Given a node and the transition function simulate a one step time lapse"
-  ([node] (one-step-ahead-node node (rand))) ; Create a random seed if not provided
-  ([node seed]
+  ([p-A->X-map node] (one-step-ahead-node p-A->X-map node (rng-int))) ; Create a random seed if not provided
+  ([p-A->X-map node seed]
    ;; Choose the next state based on the current node state
-   (let [next-state-of-node (next-state node seed)]
+   (let [next-state-of-node (next-state p-A->X-map node seed)]
      (set-state-node node next-state-of-node))))
 
 ;; Function to simulate time lapse
@@ -489,111 +491,180 @@
   This funcion takes a graph, get a seq of nodes, update each
   node in a reproducible manner. Run new-graph on the resulting
   seq of nodes to complete a time step."
-  ([graph] (unit-time-lapse graph (rand)))
-  ([graph seed]
+  ([p-A->X-map graph] (unit-time-lapse p-A->X-map graph (rng-int)))
+  ([p-A->X-map graph seed]
    (let [nodes (vals graph)]
      ;; Loop over all nodes
      (loop [acc        []
             nodes-curr nodes
             seed-curr  seed]
        (cond
-         (empty? nodes-curr) acc
-         :else (recur (conj acc (one-step-ahead-node (first nodes-curr) seed-curr))
+         ;; When done, return as a graph (hash-map)
+         (empty? nodes-curr) (new-graph acc)
+         ;; Otherwise continue to the next node
+         :else (recur (conj acc (one-step-ahead-node p-A->X-map (first nodes-curr) seed-curr))
                       (rest nodes-curr)
                       ;; Reproducible sequence of seeds determined by the initial seed
                       (new-seed seed-curr)))))))
 
-;; Set of states that are susceptible
-(def susceptible-states #{:S})
-;; Function to find candidates of transmission
-(defn susceptible-nodes
-  "Function to find candidates of transmission"
-  [graph]
+
+;; Function to return nodes in specified states
+(defn nodes-of-interest
+  "Function to return nodes in specified states"
+  [states-of-interest-set graph]
   (->> graph
     (vals, )
-    (filter #(contains? susceptible-states (:state %)), )))
+    (filter #(contains? states-of-interest-set (:state %)), )))
 
-;; Set of states that are infectious
-(def infectious-states #{:I :H :D1})
+
+;;;
+;;; Transmission parameters
+
 ;; Transmission probability of each infectious state upon 1 unit contact
 ;; Need to define 0 for non-infectious states because S individuals need to
 ;; meet people including infectious and non-infectious ones
-(def transmission-per-contact {:S 0, :E 0, :I 0.5, :H 0.5, :R 0.5, :D1 0.5, :D2 0})
+(def transmission-per-contact {:S 0, :E 0, :I 0.5, :H 0.5, :R 0, :D1 0.5, :D2 0})
 ;; Define the maximum number of people to contact per unit time
-(def maximum-n-of-contacts 10)
+(def maximum-n-of-contacts 5)
+
+
+;;;
+;;; Transmission functions
+
+;; Set of states that are susceptible
+(def susceptible-states #{:S})
+;; Function to find susceptible nodes
+(def susceptible-nodes (partial nodes-of-interest susceptible-states))
+
+;; Set of states that are infectious
+(def infectious-states #{:I :H :D1})
+;; Function to find susceptible nodes
+(def infectious-nodes (partial nodes-of-interest infectious-states))
 
 ;; Function to pick transmission targets based on connections and probabilities
 (defn target-ids
-  "Function to pick transmission targets stochastically
+  "Function to pick transmission targets stochastically (Push)
 
-  The outer loop iterate over candidate susceptible nodes.
-  Each candidate will meet with its neighbors (inner loop)
-  until there are no more neighbors, maximum defined in
-  maximum-n-of-contacts is reached, or infected."
-  ([graph] (target-ids graph (rand)))
-  ([graph seed]
-   ;; Pick nodes that are in susceptible states
-   (let [candidate-nodes (susceptible-nodes graph)]
-     ;;
-     ;; Outer loop over candidate nodes
-     (loop [acc [] ; vector of IDs of nodes destined for transmission
-            candidate-nodes-curr candidate-nodes
-            seed-curr seed]
-       (cond
-         ;; After iterating over all candidate nodes,
-         ;; Return IDs for nodes destined for transmission
-         (empty? candidate-nodes-curr) acc
-         ;; Otherwise loop over current node's neighbors to determine transmission
-         :else (let [node-being-assessed (first candidate-nodes-curr)
-                     neighbor-states     (states graph (:neighbors node-being-assessed))
-                     transmission-probs  (->> neighbor-states
-                                           (map transmission-per-contact, ))
-                     shuffled-probs  (bigml.sampling.simple/sample
-                                      transmission-probs
-                                      :seed seed-curr)
-                     ;; Inner loop over neighbors
-                     transmission-status
-                     (loop [transmission-probs-curr (take maximum-n-of-contacts shuffled-probs)
-                            seed-curr-inner seed-curr]
-                       (cond
-                         ;; If interation is over, return false with current seed
-                         (empty? transmission-probs-curr) {:transmit? false, :seed seed-curr-inner}
-                         ;; If transmission occurs, return true with current seed
-                         ;; Uniform [0,1) in Java 7
-                         ;; http://docs.oracle.com/javase/7/docs/api/java/util/Random.html
-                         (< (.nextDouble (java.util.Random. seed-curr-inner)) (first transmission-probs-curr))
-                         {:transmit? true :seed seed-curr-inner}                         
-                         ;; Otherwise keep trying to infect
-                         :else (recur (rest transmission-probs-curr)
-                                      (new-seed seed-curr-inner))))] ; Inner loop is within let
-                 
-                 ;;
-                 ;; (println "node-being-assessed" node-being-assessed)
-                 ;; (println "neighbor-states" neighbor-states)
-                 ;; (println "shuffled-probs" shuffled-probs)
-                 ;;
-                 
-                 ;; Outer loop return value
-                 (if (:transmit? transmission-status)
-                   ;; Transmission Yes
-                   (recur (conj acc (:id node-being-assessed))
-                          (rest candidate-nodes-curr)
-                          (:seed transmission-status))
-                   ;; Transmission No
-                   (recur acc
-                          (rest candidate-nodes-curr)
-                          (:seed transmission-status)))))))))
+  The outer loop iterate over infectious nodes. Each
+  infectious node will meet with its neighbors (inner loop)
+  until there are no more neighbors or maximum defined in
+  maximum-n-of-contacts is reached."
+  ;; If a seed is not given create one.
+  ([transmission-per-contact maximum-n-of-contacts graph]
+   (target-ids transmission-per-contact maximum-n-of-contacts graph (rng-int)))
+  ;; Real body
+  ([transmission-per-contact maximum-n-of-contacts graph seed]
+   ;;
+   ;; Outer loop over infectious nodes
+   (loop [acc #{} ; set of IDs of nodes destined for transmission
+          ;; Pick nodes that are in infectious states
+          infectious-nodes-curr (infectious-nodes graph)
+          seed-curr seed]
+     (cond
+       ;; After iterating over all infectious nodes,
+       ;; return IDs for nodes destined for transmission
+       ;; Only susceptible nodes can be infected
+       (empty? infectious-nodes-curr) acc
+       ;;
+       ;; Otherwise loop over current node's neighbors to determine transmission
+       :else (let [node-being-assessed (first infectious-nodes-curr)
+                   infectiousness      (transmission-per-contact (:state node-being-assessed))
+                   neighbors           (:neighbors node-being-assessed)
+                   neighbors-shuffled  (bigml.sampling.simple/sample neighbors :seed seed-curr)
+                   ;;
+                   ;; Inner loop over neighbors
+                   transmission-results
+                   (loop [acc-neighbors-infected []
+                          neighbors-to-visit     (take maximum-n-of-contacts neighbors-shuffled)
+                          seed-curr-inner        seed-curr]
+                     (cond
+                       ;; If interation is over, return with neighbors infected and current seed
+                       (empty? neighbors-to-visit) {:ids acc-neighbors-infected, :seed seed-curr-inner}
+                       ;;
+                       ;; If transmission occurs, add to infected seq and recur
+                       ;; Uniform [0,1) in Java 7
+                       ;; http://docs.oracle.com/javase/7/docs/api/java/util/Random.html
+                       (and
+                        ;; Stochastic component
+                        (< (.nextDouble (java.util.Random. seed-curr-inner)) infectiousness)
+                        ;; Susceptibility check
+                        (contains? susceptible-states (:state (graph (first neighbors-to-visit)))))
+                       (recur (conj acc-neighbors-infected (first neighbors-to-visit))
+                              (rest neighbors-to-visit)
+                              (new-seed seed-curr-inner))
+                       ;;
+                       ;; Otherwise proceed without infecting the current neighbors infected
+                       :else (recur acc-neighbors-infected
+                                    (rest neighbors-to-visit)
+                                    (new-seed seed-curr-inner))))] ; Inner loop is within let
+               ;;
+               ;; Outer loop
+               (recur (into acc (:ids transmission-results))
+                      (rest infectious-nodes-curr)
+                      (:seed transmission-results)))))))
 
 ;; Function to infect people in target-ids (deterministic)
+;; map, seq -> map
 (defn transmit
   "Function to infect people in target-ids
 
   This function is determinitstic."
   [graph target-ids]
   ;; use function to update state
-  :out)
+  (set-states graph target-ids :E))
 
 
+;;;
+;;; Simulation functions
+;; This function iterates the cycle n times
+
+(defn simulate
+  "Actually run simulation n iterations given a graph
+
+  These steps are involved:
+  (0) Assess the initial sizes of partitions
+  (1) Look for infection targets
+  (2) Progress time by one unit
+  (3) Transmit infection to targets chosen in (1)
+  (4) Record the new sizes of partitions
+  (5) Repeat (1)-(4) until n iterations are completed
+  (6) Return a vector of graphs"
+
+  ;; Set the seed if not given
+  ([p-A->X-map transmission-per-contact maximum-n-of-contacts graph n]
+   (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts graph n (rng-int)))
+  ;; Real function body
+  ([p-A->X-map transmission-per-contact maximum-n-of-contacts graph n seed]
+   ;; Create a vector to store compartment size map over time
+   (let [init-graph-vec [graph]]
+     (cond
+       ;; Stop immediatelly if no time step is requested
+       (<= n 0) init-graph-vec
+       ;; Otherwise start looping
+       :else
+       (loop [graphs-over-time-curr init-graph-vec
+              seed-curr             seed
+              graph-curr            graph
+              iter-n-curr           0]
+         (println (str "current iteration: " iter-n-curr))
+         (println (str "current states: " (state-freq graph-curr)))
+         
+         (cond
+           ;; Return when target iteration is reached
+           (= n iter-n-curr) graphs-over-time-curr
+           ;; Otherwise perform one interation
+           :else
+           (let [updated-graph (transmit ; Step (3) is deterministic
+                                ;; Step (2) is stochastic
+                                (unit-time-lapse p-A->X-map graph-curr seed-curr)
+                                ;; Step (1) is stochastic
+                                (target-ids transmission-per-contact maximum-n-of-contacts
+                                            graph-curr seed-curr))]
+
+             (recur (conj graphs-over-time-curr updated-graph)
+                    (new-seed seed-curr)
+                    updated-graph
+                    (inc iter-n-curr)))))))))
 
 ;;;
 ;;; Main function for entry
@@ -601,3 +672,4 @@
   "I don't do a whole lot ... yet."
   [& args]
   (println "Hello, World!"))
+
