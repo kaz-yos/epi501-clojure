@@ -334,27 +334,29 @@
 
 ;;; Non-transmission processes
 
+;; Default p-A->X-map is defined in the program
+
 ;; Simple model
 (deftest next-state-test
   (testing "next-state picker for transition"
     ;; Node-level tests
-    (is (= :I (next-state (new-node 1 [] :I) 100)))
-    (is (= :R (next-state (new-node 1 [] :I) 140)))))
+    (is (= :I (next-state p-A->X-map (new-node 1 [] :I) 100)))
+    (is (= :R (next-state p-A->X-map (new-node 1 [] :I) 140)))))
 
 (deftest one-step-ahead-node-test
   (testing "Update node based on transition probailities"
     (is (= (new-node 1 [] :I)
-           (one-step-ahead-node (new-node 1 [] :I) 100)))
+           (one-step-ahead-node p-A->X-map (new-node 1 [] :I) 100)))
     (is (= (new-node 1 [] :R)
-           (one-step-ahead-node (new-node 1 [] :I) 140)))))
+           (one-step-ahead-node p-A->X-map (new-node 1 [] :I) 140)))))
 
 (deftest unit-time-lapse-test
   (testing "Time lapse function to conduct stochastic transition for each node"
     (is (= (sort '(:I :I :R :I :I :I :I :I :I :I :I :I :I :I :I :R :I :I :I :I))
-           (sort (map :state (vals (unit-time-lapse (new-graph (map #(set-state-node % :I)
+           (sort (map :state (vals (unit-time-lapse p-A->X-map (new-graph (map #(set-state-node % :I)
                                                                     (new-nodes (range 20)))) 100))))))
     (is (= (sort '(:R :I :R :R :I :I :I :I :I :R :I :I :I :I :I :I :I :I :I :I))
-           (sort (map :state (vals (unit-time-lapse (new-graph (map #(set-state-node % :I)
+           (sort (map :state (vals (unit-time-lapse p-A->X-map (new-graph (map #(set-state-node % :I)
                                                                     (new-nodes (range 20)))) 140))))))))
 
 
@@ -368,6 +370,8 @@
     (is (= '(0 4 5 6 7 8 9)
            (sort (map :id (susceptible-nodes (set-states (new-graph (new-nodes (range 10))) [1 2 3] :I))))))
     ))
+
+;; Default transmission-per-contact maximum-n-of-contacts are defined in the program.
 
 (deftest target-ids-test
   (testing "Function to pick IDs of susceptible nodes that are destined for transmission"
@@ -403,11 +407,11 @@
     (let [test-graph1 (set-states (barabasi-albert-graph 10 100 :undirectional 100) [89] :I)]
       ;; No iterations (just return the initial one
       (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99})
-             (map state-freq (simulate transmission-per-contact maximum-n-of-contacts test-graph1 0))))
+             (map state-freq (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 0))))
       ;; One interation
       (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96})
-             (map state-freq (simulate transmission-per-contact maximum-n-of-contacts test-graph1 1 20141216))))
+             (map state-freq (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 1 20141216))))
       ;; 10 iterations
       (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96} {:I 2, :R 0, :E 4, :D2 0, :D1 0, :H 0, :S 94} {:I 2, :R 0, :E 6, :D2 0, :D1 0, :H 0, :S 92} {:I 2, :R 0, :E 9, :D2 0, :D1 0, :H 0, :S 89} {:I 4, :R 0, :E 10, :D2 0, :D1 0, :H 0, :S 86} {:I 6, :R 0, :E 12, :D2 0, :D1 0, :H 0, :S 82} {:I 9, :R 0, :E 23, :D2 0, :D1 0, :H 0, :S 68} {:I 15, :R 0, :E 26, :D2 0, :D1 0, :H 0, :S 59} {:I 20, :R 0, :E 36, :D2 0, :D1 0, :H 0, :S 44} {:I 28, :R 0, :E 41, :D2 0, :D1 0, :H 0, :S 31})
-             (map state-freq (simulate transmission-per-contact maximum-n-of-contacts test-graph1 10 20141216))))
+             (map state-freq (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 10 20141216))))
       )))

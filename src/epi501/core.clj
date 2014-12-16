@@ -457,8 +457,8 @@
 ;; Function to pick X for A->X stochastic transition based on A state value
 (defn next-state
   "Function to pick X for A->X stochastic transition based on A state value"
-  ([node] (next-state node (rng-int)))
-  ([node seed]
+  ([p-A->X-map node] (next-state p-A->X-map node (rng-int)))
+  ([p-A->X-map node seed]
    ;; Pick transition probability map based on current state
    (let [p-A->X (p-A->X-map (:state node))]
      (->> (bigml.sampling.simple/sample
@@ -478,10 +478,10 @@
   "Function to simulate time lapse for a node
 
   Given a node and the transition function simulate a one step time lapse"
-  ([node] (one-step-ahead-node node (rng-int))) ; Create a random seed if not provided
-  ([node seed]
+  ([p-A->X-map node] (one-step-ahead-node p-A->X-map node (rng-int))) ; Create a random seed if not provided
+  ([p-A->X-map node seed]
    ;; Choose the next state based on the current node state
-   (let [next-state-of-node (next-state node seed)]
+   (let [next-state-of-node (next-state p-A->X-map node seed)]
      (set-state-node node next-state-of-node))))
 
 ;; Function to simulate time lapse
@@ -491,8 +491,8 @@
   This funcion takes a graph, get a seq of nodes, update each
   node in a reproducible manner. Run new-graph on the resulting
   seq of nodes to complete a time step."
-  ([graph] (unit-time-lapse graph (rng-int)))
-  ([graph seed]
+  ([p-A->X-map graph] (unit-time-lapse p-A->X-map graph (rng-int)))
+  ([p-A->X-map graph seed]
    (let [nodes (vals graph)]
      ;; Loop over all nodes
      (loop [acc        []
@@ -502,7 +502,7 @@
          ;; When done, return as a graph (hash-map)
          (empty? nodes-curr) (new-graph acc)
          ;; Otherwise continue to the next node
-         :else (recur (conj acc (one-step-ahead-node (first nodes-curr) seed-curr))
+         :else (recur (conj acc (one-step-ahead-node p-A->X-map (first nodes-curr) seed-curr))
                       (rest nodes-curr)
                       ;; Reproducible sequence of seeds determined by the initial seed
                       (new-seed seed-curr)))))))
@@ -631,10 +631,10 @@
   (6) Return a vector of graphs"
 
   ;; Set the seed if not given
-  ([transmission-per-contact maximum-n-of-contacts graph n]
-   (simulate transmission-per-contact maximum-n-of-contacts graph n (rng-int)))
+  ([p-A->X-map transmission-per-contact maximum-n-of-contacts graph n]
+   (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts graph n (rng-int)))
   ;; Real function body
-  ([transmission-per-contact maximum-n-of-contacts graph n seed]
+  ([p-A->X-map transmission-per-contact maximum-n-of-contacts graph n seed]
    ;; Create a vector to store compartment size map over time
    (let [init-graph-vec [graph]]
      (cond
@@ -656,7 +656,7 @@
            :else
            (let [updated-graph (transmit ; Step (3) is deterministic
                                 ;; Step (2) is stochastic
-                                (unit-time-lapse graph-curr seed-curr)
+                                (unit-time-lapse p-A->X-map graph-curr seed-curr)
                                 ;; Step (1) is stochastic
                                 (target-ids transmission-per-contact maximum-n-of-contacts
                                             graph-curr seed-curr))]
