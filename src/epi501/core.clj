@@ -422,15 +422,6 @@
 ;;; Transition parameters
 ;; Mostly from Gomes et al, PLOS currents outbreaks Sep 2014
 
-;; Parameters in time
-;; I->H
-(def mean-time-to-hospitalization 5)
-;; I->Dx
-(def mean-time-to-death 10)
-;; I->R
-(def mean-time-to-recovery 10)
-
-
 ;; Define transition probabilities per unit time
 
 ;; Transition from susceptible state
@@ -743,32 +734,43 @@
 ;;;
 ;;; Main function for entry
 (defn -main
-  "I don't do a whole lot ... yet."
+  "Function to run models"
   [& args]
-  (let [test-graph1 (set-states (barabasi-albert-graph 5 1000 :undirectional 100) [89] :I)
-        ;; Transition from susceptible state
-        ;; No automatic transition into E/I
-        p-S->X {:S 1, :E 0, :I 0, :R 0}
-        ;; Transition from exposed (infected & latent period)
-        p-E->X {:E 6/7, :I 1/7, :S 0, :R 0}
-        ;; Transition from infectious state
-        p-I->X {:I 9/10, :R 1/10, :D1 1/2, :D2 1/2}
-        ;; Transition from hospitalized (also infectious) state
-        p-H->X {:H 9/10, :R 1/10, :D1 0, :D2 0}
-        ;; Recovered state is assumed to be an absorbing state
-        p-R->X {:R 1}
-        ;; Funeral/unsafe burial leads to safe burial over time
-        p-D1->X {:D2 1/2}
-        ;; Safe burial is assumed to be an absorbing state
-        p-D2->X {:D2 1}
-        p-A->X-map {:S p-S->X, :E p-E->X, :I p-I->X, :H p-H->X, :R p-R->X, :D1 p-D1->X, :D2 p-D2->X}
-        transmission-per-contact {:S 0, :E 0, :I 0.5, :H 0.5, :R 0, :D1 0.5, :D2 0}
-        maximum-n-of-contacts 5]
+  ;; Use one 
+  (let [test-graph1 (set-states (barabasi-albert-graph 5 1000 :undirectional 100) [89] :I)]
     ;;
-    (->> (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 100 20141216)
-      (graphs->compartments, )
-      (wide-dataset, )
-      (long-dataset, )
-      (line-chart, )
-      (view, ))))
+    (let [;; Transition from susceptible state
+          ;; No automatic transition into E/I
+          p-S->X {:S 1}
+          ;; Transition from exposed (infected & latent period)
+          p-E->X {:E 6/7, :I 1/7, :S 0, :R 0}
+          ;; Transition from infectious state
+          p-I->X {:I 9/10, :R 1/10, :D1 1/2, :D2 1/2}
+          ;; Transition from hospitalized (also infectious) state
+          p-H->X {:H 9/10, :R 1/10, :D1 0, :D2 0}
+          ;; Recovered state is assumed to be an absorbing state
+          p-R->X {:R 1}
+          ;; Funeral/unsafe burial leads to safe burial over time
+          p-D1->X {:D2 1/2}
+          ;; Safe burial is assumed to be an absorbing state
+          p-D2->X {:D2 1}
+          p-A->X-map {:S p-S->X, :E p-E->X, :I p-I->X, :H p-H->X, :R p-R->X, :D1 p-D1->X, :D2 p-D2->X}
+          transmission-per-contact {:S 0, :E 0, :I 0.5, :H 0.5, :R 0, :D1 0.5, :D2 0}
+          maximum-n-of-contacts 5]
+      ;; 
+      (->> (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 100 20141216)
+        (graphs->compartments, )
+        (wide-dataset, )
+        (long-dataset, )
+        (line-chart, )
+        (view, ))
+
+      (->> (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 100)
+        (graphs->compartments, )
+        (wide-dataset, )
+        (long-dataset, )
+        (line-chart, )
+        (view, ))
+
+      )))
 
