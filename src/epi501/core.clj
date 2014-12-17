@@ -737,42 +737,59 @@
 (defn -main
   "Function to run models"
   [& args]
-  ;; Use one 
-  (let [test-graph1 (set-states (barabasi-albert-graph 5 1000 :undirectional 100) [89] :I)]
+  ;; Use one graph for the sake for running time
+  (let [graph1 (->> (barabasi-albert-graph 5 1000 :undirectional 100)
+                 (#(set-states % [(random-choice (range (count %)))] :I)))
+        ;;
+        ;; Transition parameters
+        p-S->X  {:S 1}
+        p-E->X  {:E 6/7, :I 1/7, :S 0, :R 0}
+        p-I->X  {:I 9/10, :R (* 1/10 0.45), :D1 (* 1/10 0.55 0.5), :D2 (* 1/10 0.55 0.5) :H 0}
+        p-H->X  {:H 9/10, :R (* 1/10 0.65), :D1 (* 1/10 0.35 0.1), :D2 (* 1/10 0.35 0.9)}
+        p-R->X  {:R 1}
+        p-D1->X {:D2 1/2}
+        p-D2->X {:D2 1}
+        p-A->X-map {:S p-S->X, :E p-E->X, :I p-I->X, :H p-H->X, :R p-R->X, :D1 p-D1->X, :D2 p-D2->X}
+        ;; Transmission parameters
+        transmission-per-contact {:S 0, :E 0, :I 0.5, :H 0.5, :R 0, :D1 0.5, :D2 0}
+        maximum-n-of-contacts 5
+        ]
     ;;
-    (let [p-S->X  {:S 1}
-          p-E->X  {:E 6/7, :I 1/7, :S 0, :R 0}
-          p-I->X  {:I 9/10, :R 1/10, :D1 1/2, :D2 1/2}
-          p-H->X  {:H 9/10, :R 1/10, :D1 0, :D2 0}
-          p-R->X  {:R 1}
-          p-D1->X {:D2 1/2}
-          p-D2->X {:D2 1}
-          p-A->X-map {:S p-S->X, :E p-E->X, :I p-I->X, :H p-H->X, :R p-R->X, :D1 p-D1->X, :D2 p-D2->X}
-          transmission-per-contact {:S 0, :E 0, :I 0.5, :H 0.5, :R 0, :D1 0.5, :D2 0}
-          maximum-n-of-contacts 5]
-      ;; 
-      (->> (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 100 20141216)
+    ;; Scenario 1: No intervention
+    (let []
+      (->> graph1
+        (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
         (graphs->compartments, )
         (wide-dataset, )
         (long-dataset, )
-        (#(line-chart % "model 1"))
+        (#(line-chart % "Model 1: No intervention"))
         (view, )))
     ;;
-    (let [p-S->X  {:S 1}
-          p-E->X  {:E 6/7, :I 1/7, :S 0, :R 0}
-          p-I->X  {:I 9/10, :R 1/10, :D1 1/2, :D2 1/2}
-          p-H->X  {:H 9/10, :R 1/10, :D1 0, :D2 0}
-          p-R->X  {:R 1}
-          p-D1->X {:D2 1/2}
-          p-D2->X {:D2 1}
-          p-A->X-map {:S p-S->X, :E p-E->X, :I p-I->X, :H p-H->X, :R p-R->X, :D1 p-D1->X, :D2 p-D2->X}
-          transmission-per-contact {:S 0, :E 0, :I 0.5, :H 0.5, :R 0, :D1 0.5, :D2 0}
-          maximum-n-of-contacts 5]
-      ;;
-      (->> (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 100)
+    ;; Scenario 2: Random vaccine
+    (let []
+      (->> graph1
+        (#(set-states %
+                      (take 10 (simple/sample (map :id (susceptible-nodes graph1))))
+                      :R))
+        (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
         (graphs->compartments, )
         (wide-dataset, )
         (long-dataset, )
-        (#(line-chart % "model 2"))
-        (view, )))))
+        (#(line-chart % "model 2: Randomly vaccinate 10 susceptibles"))
+        (view, )))
+    ;;
+    ;; Scenario 3: Targeted vaccine
+    (let []
+      (->> graph1
+        (#(set-states %
+                      (map :id (take 10 (reverse (sort-by (fn [x] (count (:neighbors x)))
+                                                          (susceptible-nodes %)))))
+                      :R))
+        (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
+        (graphs->compartments, )
+        (wide-dataset, )
+        (long-dataset, )
+        (#(line-chart % "model 3: Vaccinate 10 most connected susceptibles"))
+        (view, )))
+))
 
