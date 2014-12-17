@@ -753,15 +753,17 @@
         ;; Transmission parameters
         transmission-per-contact {:S 0, :E 0, :I 0.5, :H 0.5, :R 0, :D1 0.5, :D2 0}
         maximum-n-of-contacts 5
-        ]
+        graphs->long-dataset (fn [graph-seq]
+                               (->> graph-seq
+                                 (graphs->compartments, )
+                                 (wide-dataset, )
+                                 (long-dataset, )))]
     ;;
     ;; Scenario 1: No intervention
     (let []
       (->> graph1
         (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
-        (graphs->compartments, )
-        (wide-dataset, )
-        (long-dataset, )
+        (graphs->long-dataset, )
         (#(line-chart % "Model 1: No intervention"))
         (view, )))
     ;;
@@ -772,9 +774,7 @@
                       (take 10 (simple/sample (map :id (susceptible-nodes graph1))))
                       :R))
         (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
-        (graphs->compartments, )
-        (wide-dataset, )
-        (long-dataset, )
+        (graphs->long-dataset, )
         (#(line-chart % "Model 2: Randomly vaccinate 10 susceptibles"))
         (view, )))
     ;;
@@ -786,9 +786,7 @@
                                                           (susceptible-nodes %)))))
                       :R))
         (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
-        (graphs->compartments, )
-        (wide-dataset, )
-        (long-dataset, )
+        (graphs->long-dataset, )
         (#(line-chart % "Model 3: Vaccinate 10 most connected susceptibles"))
         (view, )))
     ;;
@@ -797,9 +795,7 @@
           p-A->X-map {:S p-S->X, :E p-E->X, :I p-I->X, :H p-H->X, :R p-R->X, :D1 p-D1->X, :D2 p-D2->X}]
       (->> graph1
         (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
-        (graphs->compartments, )
-        (wide-dataset, )
-        (long-dataset, )
+        (graphs->long-dataset, )
         (#(line-chart % "Model 4: 1/20 receive PE prophylaxis, 2/3 goes immune"))
         (view, )))
     ;;
@@ -808,9 +804,7 @@
           p-A->X-map {:S p-S->X, :E p-E->X, :I p-I->X, :H p-H->X, :R p-R->X, :D1 p-D1->X, :D2 p-D2->X}]
       (->> graph1
         (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
-        (graphs->compartments, )
-        (wide-dataset, )
-        (long-dataset, )
+        (graphs->long-dataset, )
         (#(line-chart % "Model 5: 1/20 receive PE prophylaxis, 1/5 goes immune"))
         (view, )))
     ))
