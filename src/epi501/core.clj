@@ -11,8 +11,12 @@
 ;; https://github.com/cemerick/pprng
 (require '[cemerick.pprng :as rng])
 
-(require '[incanter.stats :as is])
-
+;; https://github.com/incanter/incanter
+(require '(incanter [core   :as icore]
+                    [stats  :as istats]
+                    [charts :as icharts]))
+;; Use like
+;; (icore/view (icharts/histogram (istats/sample-normal 1000)))
 
 ;;;
 ;;; Data representation
@@ -431,7 +435,7 @@
 
 ;; Transition from susceptible state
 ;; No automatic transition into E/I
-;; 
+;;
 (def p-S->X {:S 1, :E 0, :I 0, :R 0})
 
 ;; Transition from exposed (infected & latent period)
@@ -648,9 +652,9 @@
               seed-curr             seed
               graph-curr            graph
               iter-n-curr           0]
-         (println (str "current iteration: " iter-n-curr))
-         (println (str "current states: " (state-freq graph-curr)))
-         
+         ;; (println (str "current iteration: " iter-n-curr))
+         ;; (println (str "current states: " (state-freq graph-curr)))
+
          (cond
            ;; Return when target iteration is reached
            (= n iter-n-curr) graphs-over-time-curr
@@ -669,19 +673,24 @@
                     (inc iter-n-curr)))))))))
 
 
-;;; 
+;;;
 ;;; Plotting
 
-;; Function to convert convert 'simulate' output to a plottable data
-(defn plottable-data
-  "Function to convert convert 'simulate' output to a plottable data"
-  [seq-graphs]
-  (let [seq-compartment-sizes (->> seq-graphs
-                                (map state-freq, ))
-        compartment-names     (keys (first seq-compartment-sizes))
-        index                 (range (count seq-compartment-sizes))
-        output-map            {:index index}]
 
+;; Function to convert seq of graphs to seq of compartment sizes
+(defn graphs->compartments
+  "Function to convert seq of graphs to seq of compartment sizes"
+  [seq-of-graphs]
+  (->> seq-of-graphs
+    (map state-freq, )))
+
+;; Function to convert seq of compartment sizes to a wide-format data structure
+(defn wide-dataset
+  "Function to convert seq of compartment sizes to a wide-format data structure"
+  [seq-compartment-sizes]
+  (let [compartment-names (keys (first seq-compartment-sizes))
+        index             (range (count seq-compartment-sizes))
+        output-map        {:index index}]
     ;; Loop over compartments to create a seq of size at each time
     (loop [compartment-names-curr compartment-names
            acc output-map]
@@ -693,6 +702,44 @@
                     sizes-over-time (map compartment seq-compartment-sizes)]
                 (recur (rest compartment-names-curr)
                        (into acc {compartment sizes-over-time})))))))
+
+
+;; Function to melt data-frame to long format
+(defn long-dataset
+  "Function to melt a wide-format data to long format"
+  ([wide-data] (long-dataset wide-data :index))
+  ([wide-data index]
+   ;;
+   (let [n-of-non-index-elements (dec (count wide-data))
+         n-of-time-points        (count (index wide-data))
+         wide-wo-index           (dissoc wide-data index)
+         long-index-seq          (flatten (repeat n-of-non-index-elements (index wide-data)))
+         long-variables          (flatten (map #(repeat n-of-time-points %) (keys wide-wo-index)))
+         long-values             (flatten (vals wide-wo-index))]
+     ;;
+     {index      long-index-seq,
+      :variables long-variables
+      :values    long-values})))
+
+
+;;;
+;;; Function to create a line plot
+(defn line-chart
+  "Function to create a line plot"
+  [long-dataset]
+  (doto (icharts/line-chart (:index long-dataset)
+                            (:values long-dataset)
+                            :group-by (:variables long-dataset)
+                            :legend true
+                            :title "Infectious disease dynamics in a network"
+                            :x-label "time"
+                            :y-label "count")
+    (icharts/set-stroke :width 3)))
+
+(defn view
+  "Function to show a plot object"
+  [plot-object]
+  (icore/view plot-object))
 
 
 ;;;
