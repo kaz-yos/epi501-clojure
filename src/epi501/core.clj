@@ -422,15 +422,6 @@
 ;;; Transition parameters
 ;; Mostly from Gomes et al, PLOS currents outbreaks Sep 2014
 
-;; Parameters in time
-;; I->H
-(def mean-time-to-hospitalization 5)
-;; I->Dx
-(def mean-time-to-death 10)
-;; I->R
-(def mean-time-to-recovery 10)
-
-
 ;; Define transition probabilities per unit time
 
 ;; Transition from susceptible state
@@ -724,15 +715,16 @@
 ;;; Function to create a line plot
 (defn line-chart
   "Function to create a line plot"
-  [long-dataset]
-  (doto (icharts/line-chart (:index long-dataset)
-                            (:values long-dataset)
-                            :group-by (:variables long-dataset)
-                            :legend true
-                            :title "Infectious disease dynamics in a network"
-                            :x-label "time"
-                            :y-label "count")
-    (icharts/set-stroke :width 3)))
+  ([long-dataset] (line-chart long-dataset "Infectious disease dynamics in a network"))
+  ([long-dataset title]
+   (doto (icharts/line-chart (:index long-dataset)
+                             (:values long-dataset)
+                             :group-by (:variables long-dataset)
+                             :legend true
+                             :title title
+                             :x-label "time"
+                             :y-label "count")
+     (icharts/set-stroke :width 3))))
 
 (defn view
   "Function to show a plot object"
@@ -743,32 +735,83 @@
 ;;;
 ;;; Main function for entry
 (defn -main
-  "I don't do a whole lot ... yet."
+  "Function to run models"
   [& args]
-  (let [test-graph1 (set-states (barabasi-albert-graph 5 1000 :undirectional 100) [89] :I)
-        ;; Transition from susceptible state
-        ;; No automatic transition into E/I
-        p-S->X {:S 1, :E 0, :I 0, :R 0}
-        ;; Transition from exposed (infected & latent period)
-        p-E->X {:E 6/7, :I 1/7, :S 0, :R 0}
-        ;; Transition from infectious state
-        p-I->X {:I 9/10, :R 1/10, :D1 1/2, :D2 1/2}
-        ;; Transition from hospitalized (also infectious) state
-        p-H->X {:H 9/10, :R 1/10, :D1 0, :D2 0}
-        ;; Recovered state is assumed to be an absorbing state
-        p-R->X {:R 1}
-        ;; Funeral/unsafe burial leads to safe burial over time
+  ;; Use one graph for the sake for running time
+  (let [graph1 (->> (barabasi-albert-graph 5 1000 :undirectional 100)
+                 (#(set-states % [(random-choice (range (count %)))] :I)))
+        ;;
+        ;; Transition parameters
+        p-S->X  {:S 1}
+        p-E->X  {:E 6/7, :I 1/7, :S 0, :R 0}
+        p-I->X  {:I 9/10, :R (* 1/10 0.45), :D1 (* 1/10 0.55 0.5), :D2 (* 1/10 0.55 0.5) :H 0}
+        p-H->X  {:H 9/10, :R (* 1/10 0.65), :D1 (* 1/10 0.35 0.1), :D2 (* 1/10 0.35 0.9)}
+        p-R->X  {:R 1}
         p-D1->X {:D2 1/2}
-        ;; Safe burial is assumed to be an absorbing state
         p-D2->X {:D2 1}
         p-A->X-map {:S p-S->X, :E p-E->X, :I p-I->X, :H p-H->X, :R p-R->X, :D1 p-D1->X, :D2 p-D2->X}
+        ;; Transmission parameters
         transmission-per-contact {:S 0, :E 0, :I 0.5, :H 0.5, :R 0, :D1 0.5, :D2 0}
-        maximum-n-of-contacts 5]
+        maximum-n-of-contacts 5
+        ]
     ;;
-    (->> (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 100 20141216)
-      (graphs->compartments, )
-      (wide-dataset, )
-      (long-dataset, )
-      (line-chart, )
-      (view, ))))
+    ;; Scenario 1: No intervention
+    (let []
+      (->> graph1
+        (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
+        (graphs->compartments, )
+        (wide-dataset, )
+        (long-dataset, )
+        (#(line-chart % "Model 1: No intervention"))
+        (view, )))
+    ;;
+    ;; Scenario 2: Random vaccine
+    (let []
+      (->> graph1
+        (#(set-states %
+                      (take 10 (simple/sample (map :id (susceptible-nodes graph1))))
+                      :R))
+        (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
+        (graphs->compartments, )
+        (wide-dataset, )
+        (long-dataset, )
+        (#(line-chart % "Model 2: Randomly vaccinate 10 susceptibles"))
+        (view, )))
+    ;;
+    ;; Scenario 3: Targeted vaccine
+    (let []
+      (->> graph1
+        (#(set-states %
+                      (map :id (take 10 (reverse (sort-by (fn [x] (count (:neighbors x)))
+                                                          (susceptible-nodes %)))))
+                      :R))
+        (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
+        (graphs->compartments, )
+        (wide-dataset, )
+        (long-dataset, )
+        (#(line-chart % "Model 3: Vaccinate 10 most connected susceptibles"))
+        (view, )))
+    ;;
+    ;; Scenario 4: Post exposure prophylaxis
+    (let [p-E->X  {:E (* 6/7 19/20), :I (* 1/7 19/20), :S (* 1/20 1/3), :R (* 1/20 2/3)}
+          p-A->X-map {:S p-S->X, :E p-E->X, :I p-I->X, :H p-H->X, :R p-R->X, :D1 p-D1->X, :D2 p-D2->X}]
+      (->> graph1
+        (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
+        (graphs->compartments, )
+        (wide-dataset, )
+        (long-dataset, )
+        (#(line-chart % "Model 4: 1/20 receive PE prophylaxis, 2/3 goes immune"))
+        (view, )))
+    ;;
+    ;; Scenario 5: Post exposure prophylaxis (no immunity conferred)
+    (let [p-E->X  {:E (* 6/7 19/20), :I (* 1/7 19/20), :S (* 1/20 4/5), :R (* 1/20 1/5)}
+          p-A->X-map {:S p-S->X, :E p-E->X, :I p-I->X, :H p-H->X, :R p-R->X, :D1 p-D1->X, :D2 p-D2->X}]
+      (->> graph1
+        (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
+        (graphs->compartments, )
+        (wide-dataset, )
+        (long-dataset, )
+        (#(line-chart % "Model 5: 1/20 receive PE prophylaxis, 1/5 goes immune"))
+        (view, )))
+    ))
 
