@@ -12,10 +12,14 @@ For testing, do the following in the project directory
 
     $ lein test
 
+For running the default model and plotting, do the following.
+
+    $ lein run
+
 
 ## Example figure
 
-![Graph 1](./resources/graph1.png)
+![Graph 2](./resources/graph2.png)
 
 
 ## License
