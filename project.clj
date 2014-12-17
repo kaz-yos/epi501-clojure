@@ -12,6 +12,9 @@
                  [bigml/sampling "3.0"]
                  ;; https://github.com/cemerick/pprng
                  [com.cemerick/pprng "0.0.3"]
+                 ;; https://github.com/incanter/incanter
+                 ;; http://repo.incanter.org
+                 [incanter "1.5.5"]
                  ]
 
   :main ^:skip-aot epi501.core

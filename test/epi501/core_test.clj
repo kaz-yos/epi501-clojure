@@ -413,5 +413,43 @@
              (map state-freq (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 1 20141216))))
       ;; 10 iterations
       (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96} {:I 2, :R 0, :E 4, :D2 0, :D1 0, :H 0, :S 94} {:I 2, :R 0, :E 6, :D2 0, :D1 0, :H 0, :S 92} {:I 2, :R 0, :E 9, :D2 0, :D1 0, :H 0, :S 89} {:I 4, :R 0, :E 10, :D2 0, :D1 0, :H 0, :S 86} {:I 6, :R 0, :E 12, :D2 0, :D1 0, :H 0, :S 82} {:I 9, :R 0, :E 23, :D2 0, :D1 0, :H 0, :S 68} {:I 15, :R 0, :E 26, :D2 0, :D1 0, :H 0, :S 59} {:I 20, :R 0, :E 36, :D2 0, :D1 0, :H 0, :S 44} {:I 28, :R 0, :E 41, :D2 0, :D1 0, :H 0, :S 31})
-             (map state-freq (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 10 20141216))))
-      )))
+             (map state-freq (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 10 20141216)))))))
+
+
+;;; 
+;;; Plotting related
+
+(deftest graphs->compartments-test
+  (testing "graphs->compartments convertion"
+    (let [test-graph1 (set-states (barabasi-albert-graph 10 100 :undirectional 100) [89] :I)]
+      ;; No iterations (just return the initial one
+      (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99})
+             (graphs->compartments 
+              (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 0))))
+      ;; One interation
+      (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96})
+             (graphs->compartments 
+              (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 1 20141216))))
+      ;; 10 iterations
+      (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96} {:I 2, :R 0, :E 4, :D2 0, :D1 0, :H 0, :S 94} {:I 2, :R 0, :E 6, :D2 0, :D1 0, :H 0, :S 92} {:I 2, :R 0, :E 9, :D2 0, :D1 0, :H 0, :S 89} {:I 4, :R 0, :E 10, :D2 0, :D1 0, :H 0, :S 86} {:I 6, :R 0, :E 12, :D2 0, :D1 0, :H 0, :S 82} {:I 9, :R 0, :E 23, :D2 0, :D1 0, :H 0, :S 68} {:I 15, :R 0, :E 26, :D2 0, :D1 0, :H 0, :S 59} {:I 20, :R 0, :E 36, :D2 0, :D1 0, :H 0, :S 44} {:I 28, :R 0, :E 41, :D2 0, :D1 0, :H 0, :S 31})
+             (graphs->compartments
+              (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 10 20141216)))))))
+
+
+(deftest wide-dataset-test
+  (testing "Wide conversion"
+    (is (= '{:index (0 1), :I (1 1), :R (0 0), :E (0 3), :D2 (0 0), :D1 (0 0), :H (0 0), :S (99 96)}
+           (wide-dataset [{:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96}])))
+    ))
+
+
+(deftest long-dateset-test
+  (testing "wide to long conversion"
+    (is (= '{:index (0 1 0 1 0 1 0 1 0 1 0 1 0 1), :variables (:I :I :R :R :E :E :D2 :D2 :D1 :D1 :H :H :S :S), :values (1 1 0 0 0 3 0 0 0 0 0 0 99 96)}
+           (long-dataset (wide-dataset [{:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96}]))))))
+
+
+(deftest line-chart-test
+  (testing "what object line-chart returns"
+    (is (= org.jfree.chart.JFreeChart
+           (class (line-chart (long-dataset (wide-dataset [{:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96}]))))))))
