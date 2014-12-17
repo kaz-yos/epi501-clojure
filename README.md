@@ -1,36 +1,26 @@
-# epi501 Clojure project
+# EPI501 Clojure project
 
 This is a project created for a network-based SEIR infectious disease modeling for the EPI501 Dynamics of Infectious Disease class at Harvard School of Public Health.
 
 ## Installation
 
-Download from http://example.com/FIXME.
+Clone the Leiningen project directory
 
 ## Usage
 
-FIXME: explanation
+For testing, do the following in the project directory
 
-    $ java -jar epi501-0.1.0-standalone.jar [args]
+    $ lein test
 
-## Options
 
-FIXME: listing of options this app accepts.
+## Example figure
 
-## Examples
+![Graph 1](./resources/graph1.png)
 
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
 
 ## License
 
-Copyright © 2014 FIXME
+Copyright © 2014 Kazuki Yoshida
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
