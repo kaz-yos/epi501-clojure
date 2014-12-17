@@ -775,7 +775,7 @@
         (graphs->compartments, )
         (wide-dataset, )
         (long-dataset, )
-        (#(line-chart % "model 2: Randomly vaccinate 10 susceptibles"))
+        (#(line-chart % "Model 2: Randomly vaccinate 10 susceptibles"))
         (view, )))
     ;;
     ;; Scenario 3: Targeted vaccine
@@ -789,7 +789,22 @@
         (graphs->compartments, )
         (wide-dataset, )
         (long-dataset, )
-        (#(line-chart % "model 3: Vaccinate 10 most connected susceptibles"))
+        (#(line-chart % "Model 3: Vaccinate 10 most connected susceptibles"))
         (view, )))
-))
+    ;;
+    ;; Scenario 4: Additional post exposure prophylaxis
+    (let [p-E->X  {:E (* 6/7 19/20), :I (* 1/7 19/20), :S (* 1/20 1/3), :R (* 1/20 2/3)}
+          p-A->X-map {:S p-S->X, :E p-E->X, :I p-I->X, :H p-H->X, :R p-R->X, :D1 p-D1->X, :D2 p-D2->X}]
+      (->> graph1
+        (#(set-states %
+                      (map :id (take 10 (reverse (sort-by (fn [x] (count (:neighbors x)))
+                                                          (susceptible-nodes %)))))
+                      :R))
+        (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
+        (graphs->compartments, )
+        (wide-dataset, )
+        (long-dataset, )
+        (#(line-chart % "Model 4: 1/20 receive PE prophylaxis"))
+        (view, )))
+    ))
 
