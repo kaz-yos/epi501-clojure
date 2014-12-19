@@ -49,22 +49,26 @@
        {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
         2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}
         3 #epi501.core.Node{:id 3, :neighbors #{}, :state :S, :time 0}})
- (fact (map :neighbors (vals (new-graph (new-nodes [1 2 3])))) => [#{} #{} #{}])
- (fact (map :state (vals (new-graph (new-nodes [1 2 3])))) [:S :S :S])
- (fact (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]]))
-       {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}
-        2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :S, :time 0}
-        3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :S, :time 0}})
+ (fact "Three empty neighbors by default"
+       (map :neighbors (vals (new-graph (new-nodes [1 2 3])))) => [#{} #{} #{}])
+ (fact "Three susceptible states by default"
+       (map :state (vals (new-graph (new-nodes [1 2 3])))) => [:S :S :S])
+ (fact "Specify neighbors"
+       (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]]))
+       => {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}
+           2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :S, :time 0}
+           3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :S, :time 0}})
  (fact (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]] [:S :I :R]))
-       {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}
-        2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :I, :time 0}
-        3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :R, :time 0}})
+       => {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}
+           2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :I, :time 0}
+           3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :R, :time 0}})
  (fact (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]] [:S :I :R] [1 2 3]))
-       {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 1}
-        2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :I, :time 2}
-        3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :R, :time 3}})
- (fact (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:I :R :E :S :D2] [2 1 1 2 3]))
-       graph1))
+       => {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 1}
+           2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :I, :time 2}
+           3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :R, :time 3}})
+ (fact "Fully specified graph identical to graph1"
+       (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:I :R :E :S :D2] [2 1 1 2 3]))
+       => graph1))
 
 
 (deftest add-node-test
@@ -133,36 +137,36 @@
             2 #epi501.core.Node{:id 2, :neighbors #{1 4 3}, :state :S, :time 0}
             1 #epi501.core.Node{:id 1, :neighbors #{2 3 4}, :state :S, :time 0}}))))
 
-(facts 
+(facts
  "add-nodes test to add multiple nodes"
- (fact "" (add-nodes (new-graph (new-nodes [])) (new-nodes [1])) =>
-    {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}})
- (fact "" (add-nodes (new-graph (new-nodes [1])) (new-nodes [2])) =>
-    {2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}
-     1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}})
- (fact "" (add-nodes (new-graph (new-nodes [1])) (new-nodes [2 3])) =>
-    {3 #epi501.core.Node{:id 3, :neighbors #{}, :state :S, :time 0}
-     2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}
-     1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}})
- (fact "" (add-nodes (new-graph (new-nodes [1])) (new-nodes [2 3] [[1] []] [:S :I])) =>
-    {3 #epi501.core.Node{:id 3, :neighbors #{}, :state :I, :time 0}
-     2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}
-     1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}})
+ (fact "" (add-nodes (new-graph (new-nodes [])) (new-nodes [1]))
+       => {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}})
+ (fact "" (add-nodes (new-graph (new-nodes [1])) (new-nodes [2]))
+       => {2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}
+           1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}})
+ (fact "" (add-nodes (new-graph (new-nodes [1])) (new-nodes [2 3]))
+       => {3 #epi501.core.Node{:id 3, :neighbors #{}, :state :S, :time 0}
+           2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}
+           1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}})
+ (fact "" (add-nodes (new-graph (new-nodes [1])) (new-nodes [2 3] [[1] []] [:S :I]))
+       => {3 #epi501.core.Node{:id 3, :neighbors #{}, :state :I, :time 0}
+           2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}
+           1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}})
  ;; Undirectional cases
- (fact "" (add-nodes (new-graph (new-nodes [1])) 
+ (fact "" (add-nodes (new-graph (new-nodes [1]))
                      (new-nodes [2 3] [[1] [1]] [:S :I])
-                     :undirectional) =>
-    {3 #epi501.core.Node{:id 3, :neighbors #{1}, :state :I, :time 0}
-     2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}
-     1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}})
- (fact "Add nodes with undirectional edges" 
+                     :undirectional)
+       => {3 #epi501.core.Node{:id 3, :neighbors #{1}, :state :I, :time 0}
+           2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}
+           1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}})
+ (fact "Add nodes with undirectional edges"
        (add-nodes (new-graph (new-nodes [1 2] [[2] [1]]))
                   (new-nodes [3 4] [[1 2] [1 2]] [:S :I])
-                  :undirectional) =>
-    {4 #epi501.core.Node{:id 4, :neighbors #{1 2}, :state :I, :time 0}
-     3 #epi501.core.Node{:id 3, :neighbors #{1 2}, :state :S, :time 0}
-     2 #epi501.core.Node{:id 2, :neighbors #{1 4 3}, :state :S, :time 0}
-     1 #epi501.core.Node{:id 1, :neighbors #{2 3 4}, :state :S, :time 0}}))
+                  :undirectional)
+       => {4 #epi501.core.Node{:id 4, :neighbors #{1 2}, :state :I, :time 0}
+           3 #epi501.core.Node{:id 3, :neighbors #{1 2}, :state :S, :time 0}
+           2 #epi501.core.Node{:id 2, :neighbors #{1 4 3}, :state :S, :time 0}
+           1 #epi501.core.Node{:id 1, :neighbors #{2 3 4}, :state :S, :time 0}}))
 
 
 (deftest add-neighbors-test
@@ -172,7 +176,7 @@
             1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
             2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}}))))
 
-(facts 
+(facts
  "Add new neighbors to an existing node"
  (fact (add-neighbors (new-graph (new-nodes [1 2 3])) 3 [1 2])
        => {3 #epi501.core.Node{:id 3, :neighbors #{1 2}, :state :S, :time 0}
@@ -511,7 +515,7 @@
              (map state-freq (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 10 20141216)))))))
 
 
-;;; 
+;;;
 ;;; Plotting related
 
 (deftest graphs->compartments-test
@@ -519,11 +523,11 @@
     (let [test-graph1 (set-states (barabasi-albert-graph 10 100 :undirectional 100) [89] :I)]
       ;; No iterations (just return the initial one
       (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99})
-             (graphs->compartments 
+             (graphs->compartments
               (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 0))))
       ;; One interation
       (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96})
-             (graphs->compartments 
+             (graphs->compartments
               (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 1 20141216))))
       ;; 10 iterations
       (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96} {:I 2, :R 0, :E 4, :D2 0, :D1 0, :H 0, :S 94} {:I 2, :R 0, :E 6, :D2 0, :D1 0, :H 0, :S 92} {:I 2, :R 0, :E 9, :D2 0, :D1 0, :H 0, :S 89} {:I 4, :R 0, :E 10, :D2 0, :D1 0, :H 0, :S 86} {:I 6, :R 0, :E 12, :D2 0, :D1 0, :H 0, :S 82} {:I 9, :R 0, :E 23, :D2 0, :D1 0, :H 0, :S 68} {:I 15, :R 0, :E 26, :D2 0, :D1 0, :H 0, :S 59} {:I 20, :R 0, :E 36, :D2 0, :D1 0, :H 0, :S 44} {:I 28, :R 0, :E 41, :D2 0, :D1 0, :H 0, :S 31})
