@@ -15,6 +15,8 @@
                  ;; https://github.com/incanter/incanter
                  ;; http://repo.incanter.org
                  [incanter "1.5.5"]
+                 ;; https://github.com/marick/Midje
+                 [midje "1.6.3"]
                  ]
 
   :main ^:skip-aot epi501.core
