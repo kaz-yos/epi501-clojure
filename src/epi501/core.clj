@@ -196,7 +196,9 @@
 ;;; Random number generation/random sampling functions
 
 ;; Function for random integer generation
-(defn rng-int []
+(defn rng-int
+  "Function for random integer generation"
+  []
   (.nextInt (java.util.Random.)))
 
 ;; Function to return a pseudo-random integer given a large integer seed
@@ -204,8 +206,7 @@
   "Return a pseudo-random integer given a large integer seed
 
   Iterating with this function will create a predictable
-  sequence of pseudo-random numbers. If the initial seed
-  is not provided, it will be created by pprng."
+  sequence of pseudo-random numbers."
   [seed]
   (.nextInt (java.util.Random. seed)))
 
