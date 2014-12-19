@@ -316,8 +316,9 @@
 
 ;;;
 ;;; Random number/choice functions
+
 (deftest random-number-tests
-  (testing "Random graph generation functions"
+  (testing "Random choice and weighted sampling functions"
     (is (= (first (bigml.sampling.simple/sample (range 0 100) :seed 20141212))
            (random-choice (range 0 100) 20141212)))
     (is (= (random-choice [1]) 1))
@@ -328,6 +329,26 @@
     (is (= {3 2494, 1 4964, 2 2542}
            (frequencies (take 10000 (random-weighted-id-seq (new-graph (new-nodes [1 2 3] [[2 3][1][1]])) 1)))))))
 
+(facts
+ "Random choice and weighted sampling functions"
+ (fact "The choice should match with implementation and 62"
+       (= (random-choice (range 0 100) 20141212)
+          (first (bigml.sampling.simple/sample (range 0 100) :seed 20141212))
+          62)
+       => true)
+ (fact "If there is only one to choose from it is always chosen."
+       (random-choice [1]) => 1)
+ (fact "Choice is always contained in the set of values"
+       (contains? #{1 2 3} (random-choice [1 2 3]))
+       => true)
+ (fact "only nodes with positive weights are selected"
+       (take 5 (random-weighted-id-seq (new-graph (new-nodes [1 2 3] [[2 3][][]]))))
+       => [1 1 1 1 1]
+       (take 5 (random-weighted-id-seq (new-graph (new-nodes [3 2 1] [[2 3][][]]))))
+       => [3 3 3 3 3])
+ (fact "With a seed of 1 the result should be the same"
+  (frequencies (take 10000 (random-weighted-id-seq (new-graph (new-nodes [1 2 3] [[2 3][1][1]])) 1)))
+  => {3 2494, 1 4964, 2 2542}))
 
 
 ;;;
