@@ -1,22 +1,18 @@
 ;;; EPI501 Dynamics of Infectious Diseases Final Project
 ;;; Author Kazuki Yoshida
 (ns epi501.core
-  (:gen-class))
+  (:gen-class)
+  ;; Dependencies
+  (:require
+   ;; https://github.com/bigmlcom/sampling
+   (bigml.sampling [simple :as simple]
+                   [reservoir :as reservoir]
+                   [stream :as stream])
+   ;; https://github.com/incanter/incanter
+   (incanter [core   :as icore]
+             [stats  :as istats]
+             [charts :as icharts])))
 
-;; https://github.com/bigmlcom/sampling
-(require '(bigml.sampling [simple :as simple]
-                          [reservoir :as reservoir]
-                          [stream :as stream]))
-
-;; https://github.com/cemerick/pprng
-(require '[cemerick.pprng :as rng])
-
-;; https://github.com/incanter/incanter
-(require '(incanter [core   :as icore]
-                    [stats  :as istats]
-                    [charts :as icharts]))
-;; Use like
-;; (icore/view (icharts/histogram (istats/sample-normal 1000)))
 
 ;;;
 ;;; Data representation
