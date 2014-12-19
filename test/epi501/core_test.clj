@@ -58,11 +58,13 @@
        => {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}
            2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :S, :time 0}
            3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :S, :time 0}})
- (fact (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]] [:S :I :R]))
+ (fact "Specify neighbors and states"
+       (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]] [:S :I :R]))
        => {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}
            2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :I, :time 0}
            3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :R, :time 0}})
- (fact (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]] [:S :I :R] [1 2 3]))
+ (fact "Specifiy neighbors, states, and times"
+       (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]] [:S :I :R] [1 2 3]))
        => {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 1}
            2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :I, :time 2}
            3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :R, :time 3}})
@@ -195,7 +197,7 @@
  "Add new neighbors to multiple existing nodes"
  (fact (add-neighborss (new-graph (new-nodes [1 2 3])) [1 2 3] [[2 3] [1] [1]])
        => {3 #epi501.core.Node{:id 3, :neighbors #{1}, :state :S, :time 0}
-           2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}
+           2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :I, :time 0}
            1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}}))
 
 
