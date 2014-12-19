@@ -17,6 +17,7 @@
 
 ;;;
 ;;; Data creation
+
 (deftest new-graph-test
   (testing "new graph creation"
     (is (= (new-graph (new-nodes [])) {}))
@@ -41,6 +42,31 @@
     (is (= (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:I :R :E :S :D2] [2 1 1 2 3]))
            graph1))))
 
+(facts
+ "new graph creation with new-graph"
+ (fact "empty graph" (new-graph (new-nodes [])) => {})
+ (fact "three node" (new-graph (new-nodes [1 2 3])) =>
+       {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
+        2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}
+        3 #epi501.core.Node{:id 3, :neighbors #{}, :state :S, :time 0}})
+ (fact (map :neighbors (vals (new-graph (new-nodes [1 2 3])))) => [#{} #{} #{}])
+ (fact (map :state (vals (new-graph (new-nodes [1 2 3])))) [:S :S :S])
+ (fact (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]]))
+       {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}
+        2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :S, :time 0}
+        3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :S, :time 0}})
+ (fact (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]] [:S :I :R]))
+       {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}
+        2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :I, :time 0}
+        3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :R, :time 0}})
+ (fact (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]] [:S :I :R] [1 2 3]))
+       {1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 1}
+        2 #epi501.core.Node{:id 2, :neighbors #{1},   :state :I, :time 2}
+        3 #epi501.core.Node{:id 3, :neighbors #{1},   :state :R, :time 3}})
+ (fact (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:I :R :E :S :D2] [2 1 1 2 3]))
+       graph1))
+
+
 (deftest add-node-test
   (testing "Add a new node"
     (is (= (add-node (new-graph (new-nodes [])) (new-node 1))
@@ -59,6 +85,27 @@
            {1 #epi501.core.Node{:id 1, :neighbors #{3}, :state :S, :time 0}
             2 #epi501.core.Node{:id 2, :neighbors #{3}, :state :S, :time 0}
             3 #epi501.core.Node{:id 3, :neighbors #{1 2}, :state :S, :time 0}}))))
+
+(facts
+ "add-node test"
+ (fact "add a node to empty graph"
+       (add-node (new-graph (new-nodes [])) (new-node 1)) =>
+       {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}})
+ (fact (add-node (new-graph (new-nodes [1])) (new-node 2)) =>
+       {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
+        2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}})
+ (fact (add-node (new-graph (new-nodes [1])) (new-node 2 [1])) =>
+       {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
+        2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}})
+ ;; Undirectional cases
+ (fact (add-node (new-graph (new-nodes [1])) (new-node 2 [1]) :undirectional) =>
+       {1 #epi501.core.Node{:id 1, :neighbors #{2}, :state :S, :time 0}
+        2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}})
+ (fact (add-node (new-graph (new-nodes [1 2])) (new-node 3 [1 2]) :undirectional) =>
+       {1 #epi501.core.Node{:id 1, :neighbors #{3}, :state :S, :time 0}
+        2 #epi501.core.Node{:id 2, :neighbors #{3}, :state :S, :time 0}
+        3 #epi501.core.Node{:id 3, :neighbors #{1 2}, :state :S, :time 0}}))
+
 
 (deftest add-nodes-test
   (testing "Add new nodes"
@@ -86,6 +133,38 @@
             2 #epi501.core.Node{:id 2, :neighbors #{1 4 3}, :state :S, :time 0}
             1 #epi501.core.Node{:id 1, :neighbors #{2 3 4}, :state :S, :time 0}}))))
 
+(facts 
+ "add-nodes test to add multiple nodes"
+ (fact "" (add-nodes (new-graph (new-nodes [])) (new-nodes [1])) =>
+    {1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}})
+ (fact "" (add-nodes (new-graph (new-nodes [1])) (new-nodes [2])) =>
+    {2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}
+     1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}})
+ (fact "" (add-nodes (new-graph (new-nodes [1])) (new-nodes [2 3])) =>
+    {3 #epi501.core.Node{:id 3, :neighbors #{}, :state :S, :time 0}
+     2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}
+     1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}})
+ (fact "" (add-nodes (new-graph (new-nodes [1])) (new-nodes [2 3] [[1] []] [:S :I])) =>
+    {3 #epi501.core.Node{:id 3, :neighbors #{}, :state :I, :time 0}
+     2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}
+     1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}})
+ ;; Undirectional cases
+ (fact "" (add-nodes (new-graph (new-nodes [1])) 
+                     (new-nodes [2 3] [[1] [1]] [:S :I])
+                     :undirectional) =>
+    {3 #epi501.core.Node{:id 3, :neighbors #{1}, :state :I, :time 0}
+     2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}
+     1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}})
+ (fact "Add nodes with undirectional edges" 
+       (add-nodes (new-graph (new-nodes [1 2] [[2] [1]]))
+                  (new-nodes [3 4] [[1 2] [1 2]] [:S :I])
+                  :undirectional) =>
+    {4 #epi501.core.Node{:id 4, :neighbors #{1 2}, :state :I, :time 0}
+     3 #epi501.core.Node{:id 3, :neighbors #{1 2}, :state :S, :time 0}
+     2 #epi501.core.Node{:id 2, :neighbors #{1 4 3}, :state :S, :time 0}
+     1 #epi501.core.Node{:id 1, :neighbors #{2 3 4}, :state :S, :time 0}}))
+
+
 (deftest add-neighbors-test
   (testing "Add new neighbors to an existing node"
     (is (= (add-neighbors (new-graph (new-nodes [1 2 3])) 3 [1 2])
@@ -93,12 +172,27 @@
             1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
             2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}}))))
 
+(facts 
+ "Add new neighbors to an existing node"
+ (fact (add-neighbors (new-graph (new-nodes [1 2 3])) 3 [1 2])
+       => {3 #epi501.core.Node{:id 3, :neighbors #{1 2}, :state :S, :time 0}
+           1 #epi501.core.Node{:id 1, :neighbors #{}, :state :S, :time 0}
+           2 #epi501.core.Node{:id 2, :neighbors #{}, :state :S, :time 0}}))
+
+
 (deftest add-neighborss-test
   (testing "Add new neighbors to multiple existing nodes"
     (is (= (add-neighborss (new-graph (new-nodes [1 2 3])) [1 2 3] [[2 3] [1] [1]])
            {3 #epi501.core.Node{:id 3, :neighbors #{1}, :state :S, :time 0}
             2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}
             1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}}))))
+
+(facts
+ "Add new neighbors to multiple existing nodes"
+ (fact (add-neighborss (new-graph (new-nodes [1 2 3])) [1 2 3] [[2 3] [1] [1]])
+       => {3 #epi501.core.Node{:id 3, :neighbors #{1}, :state :S, :time 0}
+           2 #epi501.core.Node{:id 2, :neighbors #{1}, :state :S, :time 0}
+           1 #epi501.core.Node{:id 1, :neighbors #{2 3}, :state :S, :time 0}}))
 
 
 ;;;
