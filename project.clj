@@ -1,7 +1,8 @@
 (defproject epi501 "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
+  
+  :description "EPI501 Dynamics of Infectious Diseases Final Project"
 
-  :url "http://example.com/FIXME"
+  :url "https://github.com/kaz-yos/epi501-clojure"
 
   :license {:name "Eclipse Public License"
 
