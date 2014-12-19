@@ -258,6 +258,61 @@
                                             [:S :R :E :S :D2] [0 0 0 0 0]))
                       [1 2 3 4 5])))))
 
+(facts
+ "Change a node's status"
+ ;; A node object
+ (fact "Change status of a node object"
+       (set-field-node (new-node 1 [2 3] :S 2) :state :I)
+       => (new-node 1 [2 3] :I 2)
+       (set-state-node (new-node 1 [2 3] :S 2) :I)
+       => (new-node 1 [2 3] :I 2)
+       (set-time-node (new-node 1 [2 3] :S 2) 5)
+       => (new-node 1 [2 3] :S 5)
+       (reset-time-node (new-node 1 [2 3] :S 2))
+       => (new-node 1 [2 3] :S 0)
+       (inc-time-node (new-node 1 [2 3] :S 2))
+       => (new-node 1 [2 3] :S 3))
+ ;; A node in a graph
+ (fact "Change status of a node in a graph"
+       (set-field (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                        [:I :R :E :S :D2] [2 1 1 2 3]))
+                  1 :state :S)
+       => (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [2 1 1 2 3]))
+       (set-state (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                        [:I :R :E :S :D2] [2 1 1 2 3]))
+                  1 :S)
+       => (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [2 1 1 2 3]))
+       (set-time (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                       [:S :R :E :S :D2] [2 1 1 2 3]))
+                 1 1)
+       => (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [1 1 1 2 3]))
+       (inc-time (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                       [:S :R :E :S :D2] [2 1 1 2 3]))
+                 1)
+       => (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [3 1 1 2 3]))
+       (reset-time (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                         [:S :R :E :S :D2] [2 1 1 2 3]))
+                   1)
+       => (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [0 1 1 2 3])))
+ ;; Mutliple nodes in a graph
+ (fact " Change status of multiple nodes in a graph"
+       (set-fields (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                         [:S :R :E :S :D2] [2 1 1 2 3]))
+                   [1 2 3 4 5] :state :I)
+       => (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:I :I :I :I :I] [2 1 1 2 3]))
+       (set-states (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                         [:S :R :E :S :D2] [2 1 1 2 3]))
+                   [1 2 3 4 5] :I)
+       => (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:I :I :I :I :I] [2 1 1 2 3]))
+       (set-times (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                        [:S :R :E :S :D2] [2 1 1 2 3]))
+                  [1 2 3 4 5] 0)
+       => (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [0 0 0 0 0]))
+       (inc-times (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []]
+                                        [:S :R :E :S :D2] [0 0 0 0 0]))
+                  [1 2 3 4 5])
+       => (new-graph (new-nodes [1 2 3 4 5] [[2 3] [1] [1 4] [3] []] [:S :R :E :S :D2] [1 1 1 1 1]))))
+
 
 ;;;
 ;;; Random number/choice functions
