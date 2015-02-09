@@ -667,10 +667,10 @@
 
 (facts
  "Time lapse function to conduct stochastic transition for each node"
- (fact 
+ (fact
   (sort (map :state (vals (unit-time-lapse p-A->X-map (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 100)))) =>
   (sort '(:I :I :R :I :I :I :I :I :I :I :I :I :I :I :I :R :I :I :I :I)))
- (fact 
+ (fact
   (sort (map :state (vals (unit-time-lapse p-A->X-map (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 140)))) =>
   (sort '(:R :I :R :R :I :I :I :I :I :R :I :I :I :I :I :I :I :I :I :I))))
 
@@ -683,8 +683,15 @@
            (sort (map :id (susceptible-nodes (new-graph (new-nodes (range 10))))))))
 
     (is (= '(0 4 5 6 7 8 9)
-           (sort (map :id (susceptible-nodes (set-states (new-graph (new-nodes (range 10))) [1 2 3] :I))))))
-    ))
+           (sort (map :id (susceptible-nodes (set-states (new-graph (new-nodes (range 10))) [1 2 3] :I))))))))
+
+(facts
+ "Function to pick susceptible nodes"
+ (fact (sort (map :id (susceptible-nodes (new-graph (new-nodes (range 10)))))) =>
+       (range 10))
+
+ (fact (sort (map :id (susceptible-nodes (set-states (new-graph (new-nodes (range 10))) [1 2 3] :I)))) =>
+       '(0 4 5 6 7 8 9)))
 
 ;; Default transmission-per-contact maximum-n-of-contacts are defined in the program.
 
@@ -707,7 +714,26 @@
            (target-ids transmission-per-contact maximum-n-of-contacts (set-states (seed-graph-for-ba 100) [0] :I) (new-seed 20141213))))
     ))
 
+(facts
+ "Function to pick IDs of susceptible nodes that are destined for transmission"
+ ;; Transmission cannot occur if there are only S nodes (seed intentionally not set)
+ (fact (target-ids transmission-per-contact maximum-n-of-contacts (seed-graph-for-ba 10)) =>
+       #{})
+ ;; Transmission cannot occur if no connection (seed intentionally not set)
+ (fact (target-ids transmission-per-contact maximum-n-of-contacts (set-states (new-graph (new-nodes (range 100))) (range 1 100) :I)) =>
+       #{})
+ ;; This seed result in no infections
+ (fact (target-ids transmission-per-contact maximum-n-of-contacts (set-states (seed-graph-for-ba 100) (range 1 100) :I) 5) =>
+       #{})
+ ;; This seed result in infection
+ (fact (target-ids transmission-per-contact maximum-n-of-contacts (set-states (seed-graph-for-ba 100) (range 1 100) :I) 6) =>
+       #{0})
+ ;; Infection from one person
+ (fact (target-ids transmission-per-contact maximum-n-of-contacts (set-states (seed-graph-for-ba 100) [0] :I) (new-seed 20141213)) =>
+       #{20 90 44 94}))
 
+
+;;; Transmission
 (deftest transmit-test
   (testing "Deterministic transmission based on precomputed targed-ids"
     (is (= (set-states (set-states (seed-graph-for-ba 10) [0] :I) [1 4 5 6] :E)
@@ -716,7 +742,15 @@
                        (target-ids transmission-per-contact maximum-n-of-contacts
                                    graph-one-I (new-seed 20141213))))))))
 
+(facts
+ "Deterministic transmission based on precomputed targed-ids"
+ (fact (let [graph-one-I (set-states (seed-graph-for-ba 10) [0] :I)]
+         (transmit graph-one-I
+                   (target-ids transmission-per-contact maximum-n-of-contacts
+                               graph-one-I (new-seed 20141213)))) =>
+                               (set-states (set-states (seed-graph-for-ba 10) [0] :I) [1 4 5 6] :E)))
 
+;;; Simulation
 (deftest simulate-test
   (testing "Simulation of n cycles"
     (let [test-graph1 (set-states (barabasi-albert-graph 10 100 :undirectional 100) [89] :I)]
@@ -729,6 +763,22 @@
       ;; 10 iterations
       (is (= '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96} {:I 2, :R 0, :E 4, :D2 0, :D1 0, :H 0, :S 94} {:I 2, :R 0, :E 6, :D2 0, :D1 0, :H 0, :S 92} {:I 2, :R 0, :E 9, :D2 0, :D1 0, :H 0, :S 89} {:I 4, :R 0, :E 10, :D2 0, :D1 0, :H 0, :S 86} {:I 6, :R 0, :E 12, :D2 0, :D1 0, :H 0, :S 82} {:I 9, :R 0, :E 23, :D2 0, :D1 0, :H 0, :S 68} {:I 15, :R 0, :E 26, :D2 0, :D1 0, :H 0, :S 59} {:I 20, :R 0, :E 36, :D2 0, :D1 0, :H 0, :S 44} {:I 28, :R 0, :E 41, :D2 0, :D1 0, :H 0, :S 31})
              (map state-freq (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 10 20141216)))))))
+
+(facts
+ "Simulation of n cycles"
+ (let [test-graph1 (set-states (barabasi-albert-graph 10 100 :undirectional 100) [89] :I)]
+   ;; No iterations (just return the initial one
+   (fact
+    (map state-freq (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 0)) =>
+    '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99}))
+   ;; One interation
+   (fact
+    (map state-freq (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 1 20141216)) =>
+    '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96}))
+   ;; 10 iterations
+   (fact
+    (map state-freq (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 10 20141216)) =>
+    '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96} {:I 2, :R 0, :E 4, :D2 0, :D1 0, :H 0, :S 94} {:I 2, :R 0, :E 6, :D2 0, :D1 0, :H 0, :S 92} {:I 2, :R 0, :E 9, :D2 0, :D1 0, :H 0, :S 89} {:I 4, :R 0, :E 10, :D2 0, :D1 0, :H 0, :S 86} {:I 6, :R 0, :E 12, :D2 0, :D1 0, :H 0, :S 82} {:I 9, :R 0, :E 23, :D2 0, :D1 0, :H 0, :S 68} {:I 15, :R 0, :E 26, :D2 0, :D1 0, :H 0, :S 59} {:I 20, :R 0, :E 36, :D2 0, :D1 0, :H 0, :S 44} {:I 28, :R 0, :E 41, :D2 0, :D1 0, :H 0, :S 31}))))
 
 
 ;;;
@@ -750,12 +800,36 @@
              (graphs->compartments
               (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 10 20141216)))))))
 
+(facts
+ "graphs->compartments convertion"
+ (let [test-graph1 (set-states (barabasi-albert-graph 10 100 :undirectional 100) [89] :I)]
+   ;; No iterations (just return the initial one
+   (fact
+    (graphs->compartments
+     (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 0)) =>
+     '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99}))
+   ;; One interation
+   (fact
+    (graphs->compartments
+     (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 1 20141216)) =>
+     '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96}))
+   ;; 10 iterations
+   (fact
+    (graphs->compartments
+     (simulate p-A->X-map transmission-per-contact maximum-n-of-contacts test-graph1 10 20141216)) =>
+     '({:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96} {:I 2, :R 0, :E 4, :D2 0, :D1 0, :H 0, :S 94} {:I 2, :R 0, :E 6, :D2 0, :D1 0, :H 0, :S 92} {:I 2, :R 0, :E 9, :D2 0, :D1 0, :H 0, :S 89} {:I 4, :R 0, :E 10, :D2 0, :D1 0, :H 0, :S 86} {:I 6, :R 0, :E 12, :D2 0, :D1 0, :H 0, :S 82} {:I 9, :R 0, :E 23, :D2 0, :D1 0, :H 0, :S 68} {:I 15, :R 0, :E 26, :D2 0, :D1 0, :H 0, :S 59} {:I 20, :R 0, :E 36, :D2 0, :D1 0, :H 0, :S 44} {:I 28, :R 0, :E 41, :D2 0, :D1 0, :H 0, :S 31}))))
+
 
 (deftest wide-dataset-test
   (testing "Wide conversion"
     (is (= '{:index (0 1), :I (1 1), :R (0 0), :E (0 3), :D2 (0 0), :D1 (0 0), :H (0 0), :S (99 96)}
-           (wide-dataset [{:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96}])))
-    ))
+           (wide-dataset [{:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96}])))))
+
+(facts
+ "Wide conversion"
+ (fact
+  (wide-dataset [{:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96}]) =>
+  '{:index (0 1), :I (1 1), :R (0 0), :E (0 3), :D2 (0 0), :D1 (0 0), :H (0 0), :S (99 96)}))
 
 
 (deftest long-dateset-test
@@ -763,8 +837,19 @@
     (is (= '{:index (0 1 0 1 0 1 0 1 0 1 0 1 0 1), :variables (:I :I :R :R :E :E :D2 :D2 :D1 :D1 :H :H :S :S), :values (1 1 0 0 0 3 0 0 0 0 0 0 99 96)}
            (long-dataset (wide-dataset [{:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96}]))))))
 
+(facts
+ "wide to long conversion"
+ (fact
+  (long-dataset (wide-dataset [{:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96}])) =>
+  '{:index (0 1 0 1 0 1 0 1 0 1 0 1 0 1), :variables (:I :I :R :R :E :E :D2 :D2 :D1 :D1 :H :H :S :S), :values (1 1 0 0 0 3 0 0 0 0 0 0 99 96)}))
+
 
 (deftest line-chart-test
   (testing "what object line-chart returns"
     (is (= org.jfree.chart.JFreeChart
            (class (line-chart (long-dataset (wide-dataset [{:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96}]))))))))
+
+(facts "what object line-chart returns"
+       (fact
+        (class (line-chart (long-dataset (wide-dataset [{:I 1, :R 0, :E 0, :D2 0, :D1 0, :H 0, :S 99} {:I 1, :R 0, :E 3, :D2 0, :D1 0, :H 0, :S 96}])))) =>
+        org.jfree.chart.JFreeChart))
