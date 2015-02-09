@@ -1,22 +1,18 @@
 ;;; EPI501 Dynamics of Infectious Diseases Final Project
 ;;; Author Kazuki Yoshida
 (ns epi501.core
-  (:gen-class))
+  (:gen-class)
+  ;; Dependencies
+  (:require
+   ;; https://github.com/bigmlcom/sampling
+   (bigml.sampling [simple :as simple]
+                   [reservoir :as reservoir]
+                   [stream :as stream])
+   ;; https://github.com/incanter/incanter
+   (incanter [core   :as icore]
+             [stats  :as istats]
+             [charts :as icharts])))
 
-;; https://github.com/bigmlcom/sampling
-(require '(bigml.sampling [simple :as simple]
-                          [reservoir :as reservoir]
-                          [stream :as stream]))
-
-;; https://github.com/cemerick/pprng
-(require '[cemerick.pprng :as rng])
-
-;; https://github.com/incanter/incanter
-(require '(incanter [core   :as icore]
-                    [stats  :as istats]
-                    [charts :as icharts]))
-;; Use like
-;; (icore/view (icharts/histogram (istats/sample-normal 1000)))
 
 ;;;
 ;;; Data representation
@@ -200,7 +196,9 @@
 ;;; Random number generation/random sampling functions
 
 ;; Function for random integer generation
-(defn rng-int []
+(defn rng-int
+  "Function for random integer generation"
+  []
   (.nextInt (java.util.Random.)))
 
 ;; Function to return a pseudo-random integer given a large integer seed
@@ -208,8 +206,7 @@
   "Return a pseudo-random integer given a large integer seed
 
   Iterating with this function will create a predictable
-  sequence of pseudo-random numbers. If the initial seed
-  is not provided, it will be created by pprng."
+  sequence of pseudo-random numbers."
   [seed]
   (.nextInt (java.util.Random. seed)))
 
@@ -753,15 +750,17 @@
         ;; Transmission parameters
         transmission-per-contact {:S 0, :E 0, :I 0.5, :H 0.5, :R 0, :D1 0.5, :D2 0}
         maximum-n-of-contacts 5
-        ]
+        graphs->long-dataset (fn [graph-seq]
+                               (->> graph-seq
+                                 (graphs->compartments, )
+                                 (wide-dataset, )
+                                 (long-dataset, )))]
     ;;
     ;; Scenario 1: No intervention
     (let []
       (->> graph1
         (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
-        (graphs->compartments, )
-        (wide-dataset, )
-        (long-dataset, )
+        (graphs->long-dataset, )
         (#(line-chart % "Model 1: No intervention"))
         (view, )))
     ;;
@@ -772,9 +771,7 @@
                       (take 10 (simple/sample (map :id (susceptible-nodes graph1))))
                       :R))
         (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
-        (graphs->compartments, )
-        (wide-dataset, )
-        (long-dataset, )
+        (graphs->long-dataset, )
         (#(line-chart % "Model 2: Randomly vaccinate 10 susceptibles"))
         (view, )))
     ;;
@@ -786,9 +783,7 @@
                                                           (susceptible-nodes %)))))
                       :R))
         (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
-        (graphs->compartments, )
-        (wide-dataset, )
-        (long-dataset, )
+        (graphs->long-dataset, )
         (#(line-chart % "Model 3: Vaccinate 10 most connected susceptibles"))
         (view, )))
     ;;
@@ -797,9 +792,7 @@
           p-A->X-map {:S p-S->X, :E p-E->X, :I p-I->X, :H p-H->X, :R p-R->X, :D1 p-D1->X, :D2 p-D2->X}]
       (->> graph1
         (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
-        (graphs->compartments, )
-        (wide-dataset, )
-        (long-dataset, )
+        (graphs->long-dataset, )
         (#(line-chart % "Model 4: 1/20 receive PE prophylaxis, 2/3 goes immune"))
         (view, )))
     ;;
@@ -808,9 +801,7 @@
           p-A->X-map {:S p-S->X, :E p-E->X, :I p-I->X, :H p-H->X, :R p-R->X, :D1 p-D1->X, :D2 p-D2->X}]
       (->> graph1
         (#(simulate p-A->X-map transmission-per-contact maximum-n-of-contacts % 100))
-        (graphs->compartments, )
-        (wide-dataset, )
-        (long-dataset, )
+        (graphs->long-dataset, )
         (#(line-chart % "Model 5: 1/20 receive PE prophylaxis, 1/5 goes immune"))
         (view, )))
     ))
