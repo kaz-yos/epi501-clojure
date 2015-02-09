@@ -8,13 +8,24 @@ Clone the Leiningen project directory
 
 ## Usage
 
-For testing, do the following in the project directory
+For testing, do the following in the project directory.
 
     $ lein test
+
+or
+
+    $ lein midje
+
+Equivalent tests are implemented in the default test environment and Midje.
+
 
 For running the default model and plotting, do the following.
 
     $ lein run
+
+You can alternatively create an executable .jar file in the target directory by 
+
+    $ lein uberjar
 
 
 ## Example figure
@@ -24,7 +35,7 @@ For running the default model and plotting, do the following.
 
 ## License
 
-Copyright © 2014 Kazuki Yoshida
+Copyright © 2014-2015 Kazuki Yoshida
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
