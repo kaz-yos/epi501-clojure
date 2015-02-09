@@ -364,6 +364,20 @@
                                   1 #epi501.core.Node{:id 1, :neighbors #{0 2}, :state :S, :time 0}
                                   2 #epi501.core.Node{:id 2, :neighbors #{0 1}, :state :S, :time 0}}))))
 
+(facts
+ "Test B-A seed graph creation"
+ (fact {} =>
+       (seed-graph-for-ba 0))
+ (fact {0 #epi501.core.Node{:id 0, :neighbors #{}, :state :S, :time 0}} =>
+       (seed-graph-for-ba 1))
+ (fact {0 #epi501.core.Node{:id 0, :neighbors #{1}, :state :S, :time 0}
+        1 #epi501.core.Node{:id 1, :neighbors #{0}, :state :S, :time 0}} =>
+        (seed-graph-for-ba 2))
+ (fact {0 #epi501.core.Node{:id 0, :neighbors #{1 2}, :state :S, :time 0}
+        1 #epi501.core.Node{:id 1, :neighbors #{0 2}, :state :S, :time 0}
+        2 #epi501.core.Node{:id 2, :neighbors #{0 1}, :state :S, :time 0}} =>
+        (seed-graph-for-ba 3)))
+
 (deftest weighted-id-seq-test
   (testing "Test creation of weight ID sequence"
     (is (= (weighted-id-seq (seed-graph-for-ba 0)) '()))
@@ -372,10 +386,30 @@
     (is (= (weighted-id-seq (seed-graph-for-ba 3)) '(0 0 1 1 2 2)))
     (is (= (weighted-id-seq (seed-graph-for-ba 4)) '(0 0 0 1 1 1 2 2 2 3 3 3)))))
 
+(facts
+ "Test creation of weight ID sequence"
+ (fact '() =>
+       (weighted-id-seq (seed-graph-for-ba 0)))
+ (fact '() =>
+       (weighted-id-seq (seed-graph-for-ba 1)))
+ (fact '(0 1) =>
+       (weighted-id-seq (seed-graph-for-ba 2)))
+ (fact '(0 0 1 1 2 2) =>
+       (weighted-id-seq (seed-graph-for-ba 3)))
+ (fact '(0 0 0 1 1 1 2 2 2 3 3 3) =>
+       (weighted-id-seq (seed-graph-for-ba 4))))
+
 (deftest new-seed-test
   (testing "Seed creator"
     (is (= '(1 -1155869325 1947844456 880516877 1359879690) (take 5 (iterate new-seed 1))))
     (is (= '(0.1 -1155484576 -1764305998 -131000125 223718333) (take 5 (iterate new-seed 0.1))))))
+
+(facts
+ "Seed creator"
+ (fact (take 5 (iterate new-seed 1)) =>
+       '(1 -1155869325 1947844456 880516877 1359879690))
+ (fact (take 5 (iterate new-seed 0.1)) =>
+       '(0.1 -1155484576 -1764305998 -131000125 223718333)))
 
 (deftest random-m-unique-elements-test
   (testing "Test random m unique elements"
@@ -385,6 +419,19 @@
     (is (= #{2} (random-m-unique-elements [1 2] 1 10)))
     (is (= #{1 2} (random-m-unique-elements [1 2] 2 10)))
     (is (= #{92 6 10} (random-m-unique-elements (range 100) 3 10)))))
+
+(facts
+ "Test random m unique elements"
+ (fact #{1} =>
+       (random-m-unique-elements [1] 1))
+ (fact (random-m-unique-elements [1 2] 1 9) =>
+       #{1})
+ (fact (random-m-unique-elements [1 2] 1 10) =>
+       #{2})
+ (fact (random-m-unique-elements [1 2] 2 10) =>
+       #{1 2})
+ (fact (random-m-unique-elements (range 100) 3 10) =>
+       #{92 6 10}))
 
 (deftest barabasi-albert-graph-test
   (testing "Test B-A graph creation"
@@ -446,6 +493,14 @@
     (is (= (:id node4) 4))
     (is (= (:id node5) 5))))
 
+(facts
+ "id extration"
+ (fact (:id node1) => 1)
+ (fact (:id node2) => 2)
+ (fact (:id node3) => 3)
+ (fact (:id node4) => 4)
+ (fact (:id node5) => 5))
+
 (deftest neighbors-test
   (testing "id extration"
     (is (= (:neighbors node1) #{2 3}))
@@ -453,6 +508,14 @@
     (is (= (:neighbors node3) #{1 4}))
     (is (= (:neighbors node4) #{3}))
     (is (= (:neighbors node5) #{}))))
+
+(facts
+ "id extration"
+ (fact (:neighbors node1) => #{2 3})
+ (fact (:neighbors node2) => #{1})
+ (fact (:neighbors node3) => #{1 4})
+ (fact (:neighbors node4) => #{3})
+ (fact (:neighbors node5) => #{}))
 
 (deftest state-test
   (testing "state extration"
@@ -462,6 +525,14 @@
     (is (= (:state node4) :S))
     (is (= (:state node5) :D2))))
 
+(facts
+ "state extration"
+ (fact (:state node1) => :I)
+ (fact (:state node2) => :R)
+ (fact (:state node3) => :E)
+ (fact (:state node4) => :S)
+ (fact (:state node5) => :D2))
+
 (deftest time-test
   (testing "time extration"
     (is (= (:time node1) 2))
@@ -469,6 +540,14 @@
     (is (= (:time node3) 1))
     (is (= (:time node4) 2))
     (is (= (:time node5) 3))))
+
+(facts
+ "time extration"
+ (fact (:time node1) => 2)
+ (fact (:time node2) => 1)
+ (fact (:time node3) => 1)
+ (fact (:time node4) => 2)
+ (fact (:time node5) => 3))
 
 (deftest edges-test
   (testing "Extraction of edges from a node"
@@ -478,10 +557,24 @@
     (is (= (edges node4) [[4 3]]))
     (is (= (edges node5) []))))
 
+(facts
+ "Extraction of edges from a node"
+ (fact (edges node1) => [[1 3] [1 2]])
+ (fact (edges node2) => [[2 1]])
+ (fact (edges node3) => [[3 1] [3 4]])
+ (fact (edges node4) => [[4 3]])
+ (fact (edges node5) => []))
+
 (deftest degrees-test
   (testing "Obtain degrees"
     (is (= 2 (degree (new-node 1 #{2 3})))
         (= {1 2, 2 1, 3 1} (degrees-map (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]])))))))
+
+(facts
+ "Obtain degrees"
+ (fact (degree (new-node 1 #{2 3})) => 2)
+ (fact (degrees-map (new-graph (new-nodes [1 2 3] [[2 3] [1] [1]]))) => {1 2, 2 1, 3 1}))
+
 
 ;;; Population-level information extraction
 (deftest unique-undirected-edge-set-test
