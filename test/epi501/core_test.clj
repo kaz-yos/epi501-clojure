@@ -582,10 +582,24 @@
     (is (= (unique-undirected-edge-set graph1) #{[1 2] [1 3] [3 4]}))
     (is (= (count (unique-undirected-edge-set (barabasi-albert-graph 5 100 :undirectional))) (+ 10 (* 95 5))))))
 
+(facts
+ "Extraction of edge set"
+ (fact (unique-undirected-edge-set graph1) =>
+       #{[1 2] [1 3] [3 4]})
+ (fact (count (unique-undirected-edge-set (barabasi-albert-graph 5 100 :undirectional))) =>
+       (+ 10 (* 95 5))))
+
 (deftest unique-directed-edge-set-test
   (testing "Extraction of edge set"
     (is (= (unique-directed-edge-set graph1) #{[1 2] [1 3] [2 1] [3 1] [3 4] [4 3]}))
     (is (= (count (unique-directed-edge-set (barabasi-albert-graph 5 100 :undirectional))) (+ (* 5 4) (* 95 5 2))))))
+
+(facts
+ "Extraction of edge set"
+ (fact (unique-directed-edge-set graph1) =>
+       #{[1 2] [1 3] [2 1] [3 1] [3 4] [4 3]})
+ (fact (count (unique-directed-edge-set (barabasi-albert-graph 5 100 :undirectional))) =>
+       (+ (* 5 4) (* 95 5 2))))
 
 (deftest states-test
   (testing "Graph's state checker"
@@ -593,12 +607,21 @@
     (is (= (sort '(:I :R)) (sort (states graph1 [1 2]))))
     (is (= {:S 1, :E 1, :I 1, :R 1, :H 0, :D1 0, :D2 1} (state-freq graph1)))))
 
+(facts
+ "Graph's state checker"
+ (fact (sort '(:I :R :E :S :D2)) =>
+       (sort (states graph1)))
+ (fact (sort '(:I :R)) =>
+       (sort (states graph1 [1 2])))
+ (fact {:S 1, :E 1, :I 1, :R 1, :H 0, :D1 0, :D2 1} =>
+       (state-freq graph1)))
+
 
 ;;; Define a specific B-A graph for simulation
 (def ba-graph
   (-> (barabasi-albert-graph 3 100 :undirectional 20141212) ; This one is checked against hard-coded one
-    ;; Infect node 71
-    (set-states [(random-choice (range 100) 20141213)] :I)))
+      ;; Infect node 71
+      (set-states [(random-choice (range 100) 20141213)] :I)))
 
 
 
@@ -613,12 +636,25 @@
     (is (= :I (next-state p-A->X-map (new-node 1 [] :I) 100)))
     (is (= :R (next-state p-A->X-map (new-node 1 [] :I) 140)))))
 
+(facts
+ "next-state picker for transition"
+    ;; Node-level tests
+    (fact (next-state p-A->X-map (new-node 1 [] :I) 100) => :I)
+    (fact (next-state p-A->X-map (new-node 1 [] :I) 140) => :R))
+
 (deftest one-step-ahead-node-test
   (testing "Update node based on transition probailities"
     (is (= (new-node 1 [] :I)
            (one-step-ahead-node p-A->X-map (new-node 1 [] :I) 100)))
     (is (= (new-node 1 [] :R)
            (one-step-ahead-node p-A->X-map (new-node 1 [] :I) 140)))))
+
+(facts
+ "Update node based on transition probailities"
+ (fact (one-step-ahead-node p-A->X-map (new-node 1 [] :I) 100) =>
+       (new-node 1 [] :I))
+ (fact (one-step-ahead-node p-A->X-map (new-node 1 [] :I) 140) =>
+       (new-node 1 [] :R)))
 
 (deftest unit-time-lapse-test
   (testing "Time lapse function to conduct stochastic transition for each node"
@@ -628,6 +664,15 @@
     (is (= (sort '(:R :I :R :R :I :I :I :I :I :R :I :I :I :I :I :I :I :I :I :I))
            (sort (map :state (vals (unit-time-lapse p-A->X-map (new-graph (map #(set-state-node % :I)
                                                                     (new-nodes (range 20)))) 140))))))))
+
+(facts
+ "Time lapse function to conduct stochastic transition for each node"
+ (fact 
+  (sort (map :state (vals (unit-time-lapse p-A->X-map (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 100)))) =>
+  (sort '(:I :I :R :I :I :I :I :I :I :I :I :I :I :I :I :R :I :I :I :I)))
+ (fact 
+  (sort (map :state (vals (unit-time-lapse p-A->X-map (new-graph (map #(set-state-node % :I) (new-nodes (range 20)))) 140)))) =>
+  (sort '(:R :I :R :R :I :I :I :I :I :R :I :I :I :I :I :I :I :I :I :I))))
 
 
 ;;; Transmission processes
